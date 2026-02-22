@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import AcademicBarChart from './AcademicBarChart';
 import SummaryPieChart from './SummaryPieChart';
+import DuolingoProgressBar from './DuolingoProgressBar';
 import { BookOpen, CheckCircle, HelpCircle, UserCheck, AlertCircle, TrendingUp, Search, X, User } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -234,6 +235,14 @@ function App() {
 
                 <SummaryPieChart obtained={totalObtained} total={50} />
 
+                <div style={{ marginTop: '1.5rem', width: '100%' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.875rem', fontWeight: '600', color: '#64748b' }}>
+                    <span>Progress to Completion</span>
+                    <span>{Math.round((totalObtained / 50) * 100)}%</span>
+                  </div>
+                  <DuolingoProgressBar value={totalObtained} max={50} />
+                </div>
+
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   <div className="legend-item">
                     <span className="legend-color green" style={{ borderRadius: '50%', width: '16px', height: '16px' }}></span>
@@ -284,6 +293,9 @@ function App() {
                         <Icon size={20} style={{ color: '#94a3b8' }} />
                       </div>
                       <span className="stat-value">{value} <span style={{ fontSize: '1rem', color: '#94a3b8' }}>/ {cat.max}</span></span>
+                      <div style={{ marginTop: '12px', marginBottom: '8px' }}>
+                        <DuolingoProgressBar value={value} max={cat.max} />
+                      </div>
                       <span className={`stat-percent ${percentClass}`}>
                         {percent.toFixed(0)}%
                       </span>
