@@ -65,7 +65,7 @@ const SubjectRoadmapPage = () => {
                                         onClick={() => unlocked && navigate(`/student/subject/${subjectId}/level/${level.id}`)}
                                     >
                                         <div className="level-circle">
-                                            {completed ? "✓" : index + 1}
+                                            {completed ? "•" : index + 1}
                                         </div>
                                         <div className="level-info">
                                             <h3>{level.title}</h3>

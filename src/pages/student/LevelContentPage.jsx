@@ -92,7 +92,7 @@ const LevelContentPage = () => {
             <div className="slide-card">
                 <div className="slide-header">
                     <button className="back-link" onClick={() => navigate(`/student/subject/${subjectId}`)}>
-                        ← Back
+                        Back
                     </button>
                     <div className="slide-counter">Slide {currentSlide + 1} / {level.slides.length}</div>
                 </div>

@@ -8,17 +8,17 @@ import SubjectSelectionModal from "../components/student/SubjectSelectionModal";
 import "./Dashboard.css";
 
 const stats = [
-    { icon: "📅", label: "Attendance", value: "92%", color: "#7c3aed" },
-    { icon: "📝", label: "Tasks Due", value: "3", color: "#2563eb" },
-    { icon: "🎓", label: "GPA", value: "3.8", color: "#059669" },
-    { icon: "🏆", label: "Rank", value: "#4", color: "#d97706" },
+    { icon: "", label: "Attendance", value: "92%", color: "#7c3aed" },
+    { icon: "", label: "Tasks Due", value: "3", color: "#2563eb" },
+    { icon: "", label: "GPA", value: "3.8", color: "#059669" },
+    { icon: "", label: "Rank", value: "#4", color: "#d97706" },
 ];
 
 const featureBoxes = [
-    { key: "subjects", icon: "📚", label: "Learning Path", path: "/student/subjects", color: "#7c3aed", desc: "Interactive roadmaps & levels" },
-    { key: "notes", icon: "📝", label: "My Notes", path: "/student/notes", color: "#2563eb", desc: "Master your chapters" },
-    { key: "asgn", icon: "🚀", label: "Assignments", path: "/student/assignments", color: "#f59e0b", desc: "Submit and grow" },
-    { key: "room", icon: "🏠", label: "Study Room", path: "/student/study-room", color: "#059669", desc: "Your focused workspace" },
+    { key: "subjects", icon: "", label: "Learning Path", path: "/student/subjects", color: "#7c3aed", desc: "Interactive roadmaps & levels" },
+    { key: "notes", icon: "", label: "My Notes", path: "/student/notes", color: "#2563eb", desc: "Master your chapters" },
+    { key: "asgn", icon: "", label: "Assignments", path: "/student/assignments", color: "#f59e0b", desc: "Submit and grow" },
+    { key: "room", icon: "", label: "Study Room", path: "/student/study-room", color: "#059669", desc: "Your focused workspace" },
 ];
 
 const StudentDashboard = () => {
@@ -49,7 +49,7 @@ const StudentDashboard = () => {
                 <section className="stats-grid">
                     {stats.map((s) => (
                         <div className="stat-card" key={s.label}>
-                            <span className="stat-icon" style={{ background: s.color + "20", color: s.color }}>{s.icon}</span>
+                            {s.icon && <span className="stat-icon" style={{ background: s.color + "20", color: s.color }}>{s.icon}</span>}
                             <div>
                                 <p className="stat-value">{s.value}</p>
                                 <p className="stat-label">{s.label}</p>
@@ -66,7 +66,7 @@ const StudentDashboard = () => {
                             style={{ "--box-color": b.color }}
                             onClick={() => handleBoxClick(b)}
                         >
-                            <span className="feature-icon">{b.icon}</span>
+                            {b.icon && <span className="feature-icon">{b.icon}</span>}
                             <p className="feature-label">{b.label}</p>
                             <p className="feature-desc">{b.desc}</p>
                         </button>
