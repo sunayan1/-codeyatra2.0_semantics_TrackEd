@@ -56,6 +56,72 @@ export const LEARNING_DATA = {
                 ]
             }
         ]
+    },
+    "mathematics-iii": {
+        id: "mathematics-iii",
+        title: "Mathematics III",
+        chapters: [
+            {
+                id: "calculus",
+                title: "Advanced Calculus",
+                levels: [
+                    {
+                        id: "level-1",
+                        title: "Partial Differentiation",
+                        slides: [
+                            { title: "Concept", content: "Partial differentiation involves finding the derivative of a multivariable function with respect to one variable while holding others constant." }
+                        ],
+                        quiz: [
+                            { question: "Can we differentiate f(x, y) with respect to x?", options: ["Yes", "No"], answer: 0 }
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    "digital-logic": {
+        id: "digital-logic",
+        title: "Digital Logic",
+        chapters: [
+            {
+                id: "gates",
+                title: "Logic Gates",
+                levels: [
+                    {
+                        id: "level-1",
+                        title: "Basic Gates",
+                        slides: [
+                            { title: "AND Gate", content: "The output is high only if all inputs are high." }
+                        ],
+                        quiz: [
+                            { question: "Which gate gives high output only if all inputs are high?", options: ["OR", "AND", "NOT"], answer: 1 }
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    "computer-networks": {
+        id: "computer-networks",
+        title: "Computer Networks",
+        chapters: [
+            {
+                id: "osi",
+                title: "OSI Model",
+                levels: [
+                    {
+                        id: "level-1",
+                        title: "Physical Layer",
+                        slides: [
+                            { title: "Layer 1", content: "The physical layer is responsible for the transmission and reception of raw bitstreams." }
+                        ],
+                        quiz: [
+                            { question: "How many layers are in the OSI model?", options: ["5", "7", "9"], answer: 1 }
+                        ]
+                    }
+                ]
+            }
+        ]
     }
 };
 
