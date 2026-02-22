@@ -53,7 +53,7 @@ CREATE TABLE submissions (
     student_id UUID REFERENCES users(id) ON DELETE CASCADE,
     file_url TEXT NOT NULL,
     status TEXT CHECK (status IN ('submitted', 'graded')) DEFAULT 'submitted',
-    grade NUMERIC,
+    marks NUMERIC CHECK (marks >= 0 AND marks <= 15),
     feedback TEXT,
     submitted_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     UNIQUE(assignment_id, student_id)

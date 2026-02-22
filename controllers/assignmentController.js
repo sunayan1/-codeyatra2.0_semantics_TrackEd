@@ -82,16 +82,24 @@ const submitAssignment = async (req, res) => {
     }
 };
 
-// Grade assignment (Teacher only)
+// Grade assignment (Teacher only) - marks out of 15
 const gradeSubmission = async (req, res) => {
     try {
         const supabase = getAuthClient(req.token);
         const { submissionId } = req.params;
-        const { grade, feedback } = req.body;
+        const { marks, feedback } = req.body;
+
+        if (marks === undefined || marks === null) {
+            return res.status(400).json({ success: false, error: 'Marks are required' });
+        }
+
+        if (typeof marks !== 'number' || marks < 0 || marks > 15) {
+            return res.status(400).json({ success: false, error: 'Marks must be a number between 0 and 15' });
+        }
 
         const { data, error } = await supabase
             .from('submissions')
-            .update({ grade, feedback, status: 'graded' })
+            .update({ marks, feedback, status: 'graded' })
             .eq('id', submissionId)
             .select();
 
