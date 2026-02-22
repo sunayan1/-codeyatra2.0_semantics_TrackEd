@@ -6,11 +6,11 @@ const StudentSidebar = ({ logout }) => {
     const location = useLocation();
 
     const navItems = [
-        { key: "home", path: "/student", icon: "🏠", label: "Dashboard" },
-        { key: "subjects", path: "/student/subjects", icon: "📚", label: "Subjects" },
-        { key: "notes", path: "/student/notes", icon: "📄", label: "My Notes" },
-        { key: "asgn", path: "/student/assignments", icon: "📝", label: "Assignments" },
-        { key: "room", path: "/student/study-room", icon: "🏠", label: "Study Room" },
+        { key: "home", path: "/student", icon: "", label: "Dashboard" },
+        { key: "subjects", path: "/student/subjects", icon: "", label: "Subjects" },
+        { key: "notes", path: "/student/notes", icon: "", label: "My Notes" },
+        { key: "asgn", path: "/student/assignments", icon: "", label: "Assignments" },
+        { key: "room", path: "/student/study-room", icon: "", label: "Study Room" },
     ];
 
     return (

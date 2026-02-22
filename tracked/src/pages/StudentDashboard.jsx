@@ -7,17 +7,17 @@ import ProfileModal from "../components/ProfileModal";
 import "./Dashboard.css";
 
 const stats = [
-    { icon: "📅", label: "Attendance", value: "92%", color: "#7c3aed" },
-    { icon: "📋", label: "Tasks Due", value: "3", color: "#2563eb" },
-    { icon: "📊", label: "GPA", value: "3.8", color: "#059669" },
-    { icon: "🏆", label: "Rank", value: "#4", color: "#d97706" },
+    { icon: "", label: "Attendance", value: "92%", color: "#7c3aed" },
+    { icon: "", label: "Tasks Due", value: "3", color: "#2563eb" },
+    { icon: "", label: "GPA", value: "3.8", color: "#059669" },
+    { icon: "", label: "Rank", value: "#4", color: "#d97706" },
 ];
 
 const featureBoxes = [
-    { key: "subjects", icon: "📚", label: "Subjects", path: "/student/subjects", color: "#7c3aed", desc: "Your enrolled subjects" },
-    { key: "notes", icon: "📄", label: "My Notes", path: "/student/notes", color: "#2563eb", desc: "Notes shared by teachers" },
-    { key: "asgn", icon: "📝", label: "Assignments", path: "/student/assignments", color: "#f59e0b", desc: "Hand in your work" },
-    { key: "room", icon: "🏠", label: "Personal Room", path: "/student/study-room", color: "#059669", desc: "Enter your Study Room" },
+    { key: "subjects", icon: "", label: "Subjects", path: "/student/subjects", color: "#7c3aed", desc: "Your enrolled subjects" },
+    { key: "notes", icon: "", label: "My Notes", path: "/student/notes", color: "#2563eb", desc: "Notes shared by teachers" },
+    { key: "asgn", icon: "", label: "Assignments", path: "/student/assignments", color: "#f59e0b", desc: "Hand in your work" },
+    { key: "room", icon: "", label: "Personal Room", path: "/student/study-room", color: "#059669", desc: "Enter your Study Room" },
 ];
 
 const StudentDashboard = () => {
@@ -31,7 +31,7 @@ const StudentDashboard = () => {
 
             <main className="main">
                 <StudentHeader
-                    title="Student Dashboard"
+                    title="Dashboard"
                     user={user}
                     onAvatarClick={() => setShowProfile(true)}
                 />

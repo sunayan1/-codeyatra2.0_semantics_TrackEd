@@ -19,29 +19,29 @@ const ProfileModal = ({ user, onClose, onLogout }) => {
                     <div className="profile-main-info">
                         <h2>{name}</h2>
                         <span className={`role-badge role-${user.role}`}>
-                            {user.role === 'student' ? '🎓 Student' : '🧑‍🏫 Teacher'}
+                            {user.role === 'student' ? 'Student' : 'Teacher'}
                         </span>
                     </div>
                 </div>
 
                 <div className="profile-details">
                     <div className="detail-item">
-                        <span className="detail-label">📧 Email</span>
+                        <span className="detail-label">Email</span>
                         <span className="detail-value">{user.email}</span>
                     </div>
                     <div className="detail-item">
-                        <span className="detail-label">🆔 Account ID</span>
+                        <span className="detail-label">Account ID</span>
                         <span className="detail-value">SC-2026-{Math.floor(1000 + Math.random() * 9000)}</span>
                     </div>
                     <div className="detail-item">
-                        <span className="detail-label">📅 Member Since</span>
+                        <span className="detail-label">Member Since</span>
                         <span className="detail-value">Jan 2026</span>
                     </div>
                 </div>
 
                 <div className="profile-actions">
                     <button className="profile-btn secondary-btn" onClick={onClose}>Close</button>
-                    <button className="profile-btn logout-profile-btn" onClick={onLogout}>🚪 Logout</button>
+                    <button className="profile-btn logout-profile-btn" onClick={onLogout}>Logout</button>
                 </div>
             </div>
         </div>

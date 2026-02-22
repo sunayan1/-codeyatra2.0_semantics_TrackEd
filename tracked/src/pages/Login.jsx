@@ -1,3 +1,6 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import { authAPI } from "../services/api";
 import "./Login.css";
 
@@ -28,11 +31,11 @@ const Login = () => {
 
     const toggleRole = () => setRole((r) => (r === "student" ? "teacher" : "student"));
 
-    const greeting = role === "student" ? "Hello, Student!" : "Hello, Teacher!";
+    const greeting = role === "student" ? "Join as Student" : "Access Teacher Portal";
     const tagline =
         role === "student"
-            ? "Start your productivity journey with SmartCampus"
-            : "Manage your classes and students with SmartCampus";
+            ? "Your central hub for academic productivity."
+            : "Manage your courses and evaluate student progress.";
 
     return (
         <div className="login-wrapper">

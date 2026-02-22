@@ -7,17 +7,17 @@ import ProfileModal from "../components/ProfileModal";
 import "./Dashboard.css";
 
 const navItems = [
-  { key: "home", icon: "🏠", label: "Dashboard" },
-  { key: "attendance", icon: "📅", label: "Attendance" },
-  { key: "notes", icon: "📄", label: "Notes" },
-  { key: "assignments", icon: "📝", label: "Assignments" },
+  { key: "home", icon: "", label: "Dashboard" },
+  { key: "attendance", icon: "", label: "Attendance" },
+  { key: "notes", icon: "", label: "Notes" },
+  { key: "assignments", icon: "", label: "Assignments" },
 ];
 
 const stats = [
-  { icon: "👩‍🎓", label: "Students", value: "132", color: "#7c3aed" },
-  { icon: "📝", label: "Assignments Set", value: "18", color: "#2563eb" },
-  { icon: "📅", label: "Classes Today", value: "4", color: "#059669" },
-  { icon: "⚠️", label: "Low Attendance", value: "7", color: "#dc2626" },
+  { icon: "", label: "Students", value: "132", color: "#7c3aed" },
+  { icon: "", label: "Assignments Set", value: "18", color: "#2563eb" },
+  { icon: "", label: "Classes Today", value: "4", color: "#059669" },
+  { icon: "", label: "Low Attendance", value: "7", color: "#dc2626" },
 ];
 
 const TeacherDashboard = () => {
@@ -46,11 +46,11 @@ const TeacherDashboard = () => {
         </section>
 
         <section className="quick-actions">
-          <h3>⚡ Quick Actions</h3>
+          <h3>Quick Actions</h3>
           <div className="action-grid">
-            <button className="action-card" onClick={() => setPage("attendance")}>📅<span>Record Attendance</span></button>
-            <button className="action-card" onClick={() => setPage("notes")}>📄<span>Upload Notes</span></button>
-            <button className="action-card" onClick={() => setPage("assignments")}>📝<span>New Assignment</span></button>
+            <button className="action-card" onClick={() => setPage("attendance")}>Record Attendance</button>
+            <button className="action-card" onClick={() => setPage("notes")}>Upload Notes</button>
+            <button className="action-card" onClick={() => setPage("assignments")}>New Assignment</button>
           </div>
         </section>
       </>
@@ -79,7 +79,7 @@ const TeacherDashboard = () => {
         <header className="dash-header">
           <div>
             <h1>{navItems.find((n) => n.key === page)?.label ?? "Dashboard"}</h1>
-            <p>Welcome, <strong>{user?.email}</strong> 👋</p>
+            <p>Teacher View: <strong>{user?.email}</strong></p>
           </div>
           <div className="avatar" onClick={() => setShowProfile(true)} style={{ background: "#2563eb", cursor: 'pointer' }}>
             {user?.email?.[0]?.toUpperCase()}
