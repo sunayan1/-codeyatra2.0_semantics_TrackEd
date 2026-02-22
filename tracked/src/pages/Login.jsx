@@ -1,6 +1,4 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { authAPI } from "../services/api";
 import "./Login.css";
 
 const Login = () => {
@@ -10,11 +8,22 @@ const Login = () => {
     const { login } = useAuth();
     const navigate = useNavigate();
 
-    const handleLogin = (e) => {
+    const handleLogin = async (e) => {
         e.preventDefault();
         if (!email || !password) return alert("Please fill all fields");
-        login(email, role);
-        navigate(role === "student" ? "/student" : "/teacher");
+
+        try {
+            const res = await authAPI.login({ email, password, role });
+            if (res.data) {
+                login(email, role);
+                navigate(role === "student" ? "/student" : "/teacher");
+            } else {
+                alert("Invalid credentials. Please try again.");
+            }
+        } catch (error) {
+            console.error("Login error:", error);
+            alert("A server error occurred. Please try again later.");
+        }
     };
 
     const toggleRole = () => setRole((r) => (r === "student" ? "teacher" : "student"));
