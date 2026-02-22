@@ -65,8 +65,8 @@
 .level-node.unlocked:hover {
     background: #fdfcff;
     transform: scale(1.03);
-    border-color: #7c3aed;
-    box-shadow: 0 10px 15px -3px rgba(124, 58, 237, 0.1);
+    border-color: #2563eb;
+    box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.1);
 }
 
 .level-circle {
@@ -86,8 +86,8 @@
 }
 
 .level-node.unlocked .level-circle {
-    border-color: #7c3aed;
-    box-shadow: 0 0 20px rgba(124, 58, 237, 0.3);
+    border-color: #2563eb;
+    box-shadow: 0 0 20px rgba(37, 99, 235, 0.3);
 }
 
 .level-node.completed .level-circle {

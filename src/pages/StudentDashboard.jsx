@@ -5,17 +5,18 @@ import StudentSidebar from "../components/student/StudentSidebar";
 import StudentHeader from "../components/student/StudentHeader";
 import ProfileModal from "../components/ProfileModal";
 import SubjectSelectionModal from "../components/student/SubjectSelectionModal";
+import ProgressTracker from "../components/student/ProgressTracker";
 import "./Dashboard.css";
 
 const stats = [
-    { icon: "", label: "Attendance", value: "92%", color: "#7c3aed" },
+    { icon: "", label: "Attendance", value: "92%", color: "#2563eb" },
     { icon: "", label: "Tasks Due", value: "3", color: "#2563eb" },
     { icon: "", label: "GPA", value: "3.8", color: "#059669" },
     { icon: "", label: "Rank", value: "#4", color: "#d97706" },
 ];
 
 const featureBoxes = [
-    { key: "subjects", icon: "", label: "Learning Path", path: "/student/subjects", color: "#7c3aed", desc: "Interactive roadmaps & levels" },
+    { key: "subjects", icon: "", label: "Learning Path", path: "/student/subjects", color: "#2563eb", desc: "Interactive roadmaps & levels" },
     { key: "notes", icon: "", label: "My Notes", path: "/student/notes", color: "#2563eb", desc: "Master your chapters" },
     { key: "asgn", icon: "", label: "Assignments", path: "/student/assignments", color: "#f59e0b", desc: "Submit and grow" },
     { key: "room", icon: "", label: "Study Room", path: "/student/study-room", color: "#059669", desc: "Your focused workspace" },
@@ -72,6 +73,8 @@ const StudentDashboard = () => {
                         </button>
                     ))}
                 </section>
+
+                <ProgressTracker user={user} />
             </main>
 
             {showProfile && (

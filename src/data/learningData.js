@@ -255,7 +255,7 @@ export const LEARNING_DATA = {
 };
 
 export const SUBJECTS = [
-    { id: "data-structures", title: "Data Structures", color: "#7c3aed" },
+    { id: "data-structures", title: "Data Structures", color: "#2563eb" },
     { id: "operating-systems", title: "Operating Systems", color: "#2563eb" },
     { id: "mathematics-iii", title: "Mathematics III", color: "#059669" },
     { id: "digital-logic", title: "Digital Logic", color: "#d97706" },

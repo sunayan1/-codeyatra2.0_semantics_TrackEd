@@ -2,6 +2,7 @@ import { useState } from "react";
 import AttendancePage from "./teacher/AttendancePage";
 import NotesPage from "./teacher/NotesPage";
 import AssignmentsPage from "./teacher/AssignmentsPage";
+import StudentRecordsPage from "./teacher/StudentRecordsPage";
 import { useAuth } from "../context/AuthContext";
 import ProfileModal from "../components/ProfileModal";
 import "./Dashboard.css";
@@ -11,10 +12,11 @@ const navItems = [
   { key: "attendance", icon: "", label: "Attendance" },
   { key: "notes", icon: "", label: "Notes" },
   { key: "assignments", icon: "", label: "Assignments" },
+  { key: "records", icon: "", label: "Student Records" },
 ];
 
 const stats = [
-  { icon: "", label: "Students", value: "132", color: "#7c3aed" },
+  { icon: "", label: "Students", value: "132", color: "#2563eb" },
   { icon: "", label: "Assignments Set", value: "18", color: "#2563eb" },
   { icon: "", label: "Classes Today", value: "4", color: "#059669" },
   { icon: "", label: "Low Attendance", value: "7", color: "#dc2626" },
@@ -29,6 +31,7 @@ const TeacherDashboard = () => {
     if (page === "attendance") return <AttendancePage />;
     if (page === "notes") return <NotesPage />;
     if (page === "assignments") return <AssignmentsPage />;
+    if (page === "records") return <StudentRecordsPage />;
     return (
       <>
         <section className="stats-grid">
@@ -72,7 +75,7 @@ const TeacherDashboard = () => {
             </button>
           ))}
         </nav>
-        <button className="logout-btn" onClick={logout}>🚪 Logout</button>
+        <button className="logout-btn" onClick={logout}>Logout</button>
       </aside>
 
       <main className="main">
