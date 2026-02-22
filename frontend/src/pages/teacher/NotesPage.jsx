@@ -1,38 +1,68 @@
 import { useState, useEffect } from "react";
-import { notesAPI } from "../../services/api";
+import { notesAPI, subjectsAPI } from "../../services/api";
 
 const NotesPage = () => {
     const [notes, setNotes] = useState([]);
+    const [subjects, setSubjects] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [title, setTitle] = useState("");
-    const [subject, setSubject] = useState("");
+    const [subjectId, setSubjectId] = useState("");
     const [fileName, setFileName] = useState("");
 
     useEffect(() => {
-        loadNotes();
+        loadData();
     }, []);
 
-    const loadNotes = async () => {
-        const res = await notesAPI.getAll();
-        setNotes(res.data || []);
-        setIsLoading(false);
+    const loadData = async () => {
+        try {
+            const [notesRes, subjectsRes] = await Promise.all([
+                notesAPI.getAll(),
+                subjectsAPI.getAll()
+            ]);
+            setNotes(notesRes.data || []);
+            setSubjects(subjectsRes.data || []);
+        } catch (err) {
+            console.error("Failed to load data:", err);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     const handleUpload = async () => {
-        if (!title || !subject) return alert("Please fill title and subject");
+        if (!title || !subjectId) return alert("Please fill title and select a subject");
         const newNote = {
             title,
-            subject,
-            date: new Date().toISOString().split("T")[0],
+            subject_id: subjectId,
+            content_url: fileName || null,
         };
-        const res = await notesAPI.create(newNote);
-        setNotes((n) => [res.data, ...n]);
-        setTitle(""); setSubject(""); setFileName("");
+        try {
+            const res = await notesAPI.create(newNote);
+            if (res.data) {
+                // Enrich with subject name for display
+                const subject = subjects.find(s => s.id === subjectId);
+                const enriched = { ...res.data, subject: subject?.title || '' };
+                setNotes((n) => [enriched, ...n]);
+                setTitle("");
+                setSubjectId("");
+                setFileName("");
+            }
+        } catch (err) {
+            alert("Failed to upload note: " + err.message);
+        }
     };
 
     const handleDelete = async (id) => {
-        await notesAPI.delete(id);
-        setNotes((prev) => prev.filter((x) => x.id !== id));
+        try {
+            await notesAPI.delete(id);
+            setNotes((prev) => prev.filter((x) => x.id !== id));
+        } catch (err) {
+            alert("Failed to delete: " + err.message);
+        }
+    };
+
+    const formatDate = (dateStr) => {
+        if (!dateStr) return "";
+        return new Date(dateStr).toLocaleDateString();
     };
 
     return (
@@ -45,14 +75,19 @@ const NotesPage = () => {
                         value={title}
                         onChange={(e) => setTitle(e.target.value)}
                     />
-                    <input
-                        placeholder="Subject"
-                        value={subject}
-                        onChange={(e) => setSubject(e.target.value)}
-                    />
+                    <select
+                        value={subjectId}
+                        onChange={(e) => setSubjectId(e.target.value)}
+                        style={{ padding: '0.75rem', borderRadius: '8px', border: '1px solid #e5e7eb', fontSize: '0.95rem' }}
+                    >
+                        <option value="">Select Subject</option>
+                        {subjects.map((s) => (
+                            <option key={s.id} value={s.id}>{s.title}</option>
+                        ))}
+                    </select>
                 </div>
                 <label className="file-label">
-                    {fileName || "Choose File"}
+                    {fileName || "Choose File (optional)"}
                     <input
                         type="file"
                         hidden
@@ -67,7 +102,7 @@ const NotesPage = () => {
                     <div className="note-card" key={n.id}>
                         <div>
                             <p className="note-title">{n.title}</p>
-                            <p className="note-meta">{n.subject} · {n.date}</p>
+                            <p className="note-meta">{n.subject} · {formatDate(n.created_at)}</p>
                         </div>
                         <button
                             className="del-btn"

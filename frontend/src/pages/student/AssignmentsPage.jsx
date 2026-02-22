@@ -19,28 +19,38 @@ const StudentAssignmentsPage = () => {
 
     const loadData = async () => {
         setIsLoading(true);
-        const [aRes, sRes] = await Promise.all([
-            assignmentsAPI.getAll(),
-            submissionsAPI.getAll()
-        ]);
-        setAssignments(aRes.data || []);
-        setSubmissions(sRes.data || []);
-        setIsLoading(false);
+        try {
+            const [aRes, sRes] = await Promise.all([
+                assignmentsAPI.getAll(),
+                submissionsAPI.getMine()
+            ]);
+            setAssignments(aRes.data || []);
+            setSubmissions(sRes.data || []);
+        } catch (err) {
+            console.error("Failed to load assignments:", err);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     const handleHandIn = async (assignmentId) => {
-        const studentEmail = user?.email || "student@example.com";
-        const fileName = `submission_${assignmentId}_${Date.now()}.pdf`;
+        try {
+            const fileName = `submission_${Date.now()}.pdf`;
+            const res = await submissionsAPI.submit(assignmentId, {
+                file_url: fileName,
+            });
+            if (res.data) {
+                setSubmissions(prev => [res.data, ...prev]);
+                alert("Assignment handed in successfully!");
+            }
+        } catch (err) {
+            alert("Failed to submit: " + err.message);
+        }
+    };
 
-        const submission = {
-            assignmentId,
-            studentEmail,
-            fileName,
-        };
-
-        const res = await submissionsAPI.submit(submission);
-        setSubmissions(prev => [res.data, ...prev]);
-        alert("Assignment handed in successfully!");
+    const formatDate = (dateStr) => {
+        if (!dateStr) return "";
+        return new Date(dateStr).toLocaleDateString();
     };
 
     return (
@@ -62,16 +72,23 @@ const StudentAssignmentsPage = () => {
                     ) : (
                         <div className="assignments-list">
                             {assignments.map((a) => {
-                                const isSubmitted = submissions.some(s => s.assignmentId === a.id && s.studentEmail === user?.email);
+                                const isSubmitted = submissions.some(
+                                    s => s.assignment_id === a.id
+                                );
+                                const isPastDue = new Date(a.due_date) < new Date();
                                 return (
                                     <div className="note-card" key={a.id} style={{ marginBottom: '1.25rem' }}>
                                         <div style={{ flex: 1 }}>
                                             <p className="note-title">{a.title}</p>
-                                            <p className="note-meta">{a.subject} · Due: {a.deadline}</p>
-                                            {a.desc && <p className="asgn-inline-desc">{a.desc}</p>}
+                                            <p className="note-meta">
+                                                {a.subject} · Due: {formatDate(a.due_date)}
+                                            </p>
+                                            {a.description && <p className="asgn-inline-desc">{a.description}</p>}
                                         </div>
                                         {isSubmitted ? (
                                             <span className="badge badge-green">Submitted</span>
+                                        ) : isPastDue ? (
+                                            <span className="badge" style={{ background: '#fee2e2', color: '#dc2626' }}>Past Due</span>
                                         ) : (
                                             <button className="badge badge-purple" onClick={() => handleHandIn(a.id)}>Hand In Work</button>
                                         )}

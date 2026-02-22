@@ -18,9 +18,19 @@ const StudentNotesPage = () => {
 
     const loadNotes = async () => {
         setIsLoading(true);
-        const res = await notesAPI.getAll();
-        setNotes(res.data || []);
-        setIsLoading(false);
+        try {
+            const res = await notesAPI.getAll();
+            setNotes(res.data || []);
+        } catch (err) {
+            console.error("Failed to load notes:", err);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const formatDate = (dateStr) => {
+        if (!dateStr) return "";
+        return new Date(dateStr).toLocaleDateString();
     };
 
     return (
@@ -45,9 +55,15 @@ const StudentNotesPage = () => {
                                 <div className="note-card" key={n.id}>
                                     <div>
                                         <p className="note-title">{n.title}</p>
-                                        <p className="note-meta">{n.subject} · {n.date}</p>
+                                        <p className="note-meta">{n.subject} · {formatDate(n.created_at)}</p>
                                     </div>
-                                    <span className="badge badge-purple">View Note</span>
+                                    {n.content_url ? (
+                                        <a href={n.content_url} target="_blank" rel="noopener noreferrer" className="badge badge-purple">
+                                            View Note
+                                        </a>
+                                    ) : (
+                                        <span className="badge badge-purple">View Note</span>
+                                    )}
                                 </div>
                             ))}
                         </div>

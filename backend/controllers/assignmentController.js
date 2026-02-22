@@ -110,4 +110,165 @@ const gradeSubmission = async (req, res) => {
     }
 };
 
-module.exports = { getAssignmentsBySubject, createAssignment, submitAssignment, gradeSubmission };
+// Get ALL assignments for the current user
+const getAllAssignments = async (req, res) => {
+    try {
+        const supabase = getAuthClient(req.token);
+        const { role, id } = req.user;
+
+        if (role === 'teacher') {
+            const { data: subjects, error: subjectError } = await supabase
+                .from('subjects')
+                .select('id, title')
+                .eq('teacher_id', id);
+
+            if (subjectError) throw subjectError;
+            if (!subjects || subjects.length === 0) return res.json({ success: true, data: [] });
+
+            const subjectIds = subjects.map(s => s.id);
+            const subjectMap = Object.fromEntries(subjects.map(s => [s.id, s.title]));
+
+            const { data, error } = await supabase
+                .from('assignments')
+                .select('*')
+                .in('subject_id', subjectIds)
+                .order('created_at', { ascending: false });
+
+            if (error) throw error;
+            const enriched = (data || []).map(a => ({ ...a, subject: subjectMap[a.subject_id] || '' }));
+            return res.json({ success: true, data: enriched });
+        } else {
+            // Student: get enrolled subjects, then assignments
+            const { data: enrollments, error: enrollError } = await supabase
+                .from('enrollments')
+                .select('subject_id, subjects ( id, title )')
+                .eq('student_id', id);
+
+            if (enrollError) throw enrollError;
+            if (!enrollments || enrollments.length === 0) return res.json({ success: true, data: [] });
+
+            const subjectIds = enrollments.map(e => e.subject_id);
+            const subjectMap = Object.fromEntries(enrollments.map(e => [e.subject_id, e.subjects?.title || '']));
+
+            const { data, error } = await supabase
+                .from('assignments')
+                .select('*')
+                .in('subject_id', subjectIds)
+                .order('created_at', { ascending: false });
+
+            if (error) throw error;
+            const enriched = (data || []).map(a => ({ ...a, subject: subjectMap[a.subject_id] || '' }));
+            return res.json({ success: true, data: enriched });
+        }
+    } catch (error) {
+        console.error('getAllAssignments error:', error);
+        res.status(500).json({ success: false, error: 'Server error fetching assignments' });
+    }
+};
+
+// Delete assignment (Teacher only)
+const deleteAssignment = async (req, res) => {
+    try {
+        const supabase = getAuthClient(req.token);
+        const { id: assignmentId } = req.params;
+
+        const { data: assignment, error: asnErr } = await supabase
+            .from('assignments')
+            .select('subject_id')
+            .eq('id', assignmentId)
+            .single();
+
+        if (asnErr || !assignment) {
+            return res.status(404).json({ success: false, error: 'Assignment not found' });
+        }
+
+        const { data: subject, error: subErr } = await supabase
+            .from('subjects')
+            .select('teacher_id')
+            .eq('id', assignment.subject_id)
+            .single();
+
+        if (subErr || !subject || subject.teacher_id !== req.user.id) {
+            return res.status(403).json({ success: false, error: 'Forbidden' });
+        }
+
+        const { error } = await supabase.from('assignments').delete().eq('id', assignmentId);
+        if (error) throw error;
+        res.json({ success: true });
+    } catch (error) {
+        console.error('deleteAssignment error:', error);
+        res.status(500).json({ success: false, error: 'Server error deleting assignment' });
+    }
+};
+
+// Get submissions for the current student
+const getMySubmissions = async (req, res) => {
+    try {
+        const supabase = getAuthClient(req.token);
+        const { data, error } = await supabase
+            .from('submissions')
+            .select('*')
+            .eq('student_id', req.user.id)
+            .order('submitted_at', { ascending: false });
+
+        if (error) throw error;
+        res.json({ success: true, data: data || [] });
+    } catch (error) {
+        console.error('getMySubmissions error:', error);
+        res.status(500).json({ success: false, error: 'Server error fetching submissions' });
+    }
+};
+
+// Get all submissions for a teacher's assignments
+const getAllSubmissionsForTeacher = async (req, res) => {
+    try {
+        const supabase = getAuthClient(req.token);
+
+        const { data: subjects } = await supabase
+            .from('subjects')
+            .select('id')
+            .eq('teacher_id', req.user.id);
+
+        if (!subjects || subjects.length === 0) return res.json({ success: true, data: [] });
+
+        const subjectIds = subjects.map(s => s.id);
+
+        const { data: assignments } = await supabase
+            .from('assignments')
+            .select('id')
+            .in('subject_id', subjectIds);
+
+        if (!assignments || assignments.length === 0) return res.json({ success: true, data: [] });
+
+        const assignmentIds = assignments.map(a => a.id);
+
+        const { data, error } = await supabase
+            .from('submissions')
+            .select('*, users!submissions_student_id_fkey ( email, full_name )')
+            .in('assignment_id', assignmentIds)
+            .order('submitted_at', { ascending: false });
+
+        if (error) throw error;
+
+        const enriched = (data || []).map(s => ({
+            ...s,
+            studentEmail: s.users?.email || '',
+            studentName: s.users?.full_name || ''
+        }));
+        res.json({ success: true, data: enriched });
+    } catch (error) {
+        console.error('getAllSubmissionsForTeacher error:', error);
+        res.status(500).json({ success: false, error: 'Server error fetching submissions' });
+    }
+};
+
+module.exports = {
+    getAssignmentsBySubject,
+    createAssignment,
+    submitAssignment,
+    gradeSubmission,
+    getAllAssignments,
+    deleteAssignment,
+    getMySubmissions,
+    getAllSubmissionsForTeacher
+};

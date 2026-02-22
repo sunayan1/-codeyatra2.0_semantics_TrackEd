@@ -2,12 +2,14 @@ import { useState } from "react";
 import AttendancePage from "./teacher/AttendancePage";
 import NotesPage from "./teacher/NotesPage";
 import AssignmentsPage from "./teacher/AssignmentsPage";
+import SubjectsPage from "./teacher/SubjectsPage";
 import { useAuth } from "../context/AuthContext";
 import ProfileModal from "../components/ProfileModal";
 import "./Dashboard.css";
 
 const navItems = [
   { key: "home", icon: "", label: "Dashboard" },
+  { key: "subjects", icon: "", label: "Subjects" },
   { key: "attendance", icon: "", label: "Attendance" },
   { key: "notes", icon: "", label: "Notes" },
   { key: "assignments", icon: "", label: "Assignments" },
@@ -26,6 +28,7 @@ const TeacherDashboard = () => {
   const [showProfile, setShowProfile] = useState(false);
 
   const renderPage = () => {
+    if (page === "subjects") return <SubjectsPage />;
     if (page === "attendance") return <AttendancePage />;
     if (page === "notes") return <NotesPage />;
     if (page === "assignments") return <AssignmentsPage />;

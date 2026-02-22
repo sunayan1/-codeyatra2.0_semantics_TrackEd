@@ -3,9 +3,9 @@ import React from 'react';
 const ProfileModal = ({ user, onClose, onLogout }) => {
     if (!user) return null;
 
-    // Helper to format email into a "Name"
-    const name = user.email.split('@')[0].split('.').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ');
-    const initial = user.email[0].toUpperCase();
+    // Use full_name from backend, fallback to email-derived name
+    const name = user.full_name || user.email.split('@')[0].split('.').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ');
+    const initial = (user.full_name ? user.full_name[0] : user.email[0]).toUpperCase();
 
     return (
         <div className="profile-overlay" onClick={onClose}>

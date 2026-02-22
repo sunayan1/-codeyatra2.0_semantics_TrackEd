@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
-import { assignmentsAPI, submissionsAPI } from "../../services/api";
+import { assignmentsAPI, submissionsAPI, subjectsAPI } from "../../services/api";
 
 const AssignmentsPage = () => {
     const [assignments, setAssignments] = useState([]);
     const [submissions, setSubmissions] = useState([]);
+    const [subjects, setSubjects] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [form, setForm] = useState({ title: "", subject: "", deadline: "", desc: "" });
+    const [form, setForm] = useState({ title: "", subject_id: "", due_date: "", description: "" });
     const [showSubmissions, setShowSubmissions] = useState(null);
 
     useEffect(() => {
@@ -13,26 +14,50 @@ const AssignmentsPage = () => {
     }, []);
 
     const loadData = async () => {
-        const [aRes, sRes] = await Promise.all([
-            assignmentsAPI.getAll(),
-            submissionsAPI.getAll()
-        ]);
-        setAssignments(aRes.data || []);
-        setSubmissions(sRes.data || []);
-        setIsLoading(false);
+        try {
+            const [aRes, sRes, subRes] = await Promise.all([
+                assignmentsAPI.getAll(),
+                submissionsAPI.getTeacher(),
+                subjectsAPI.getAll()
+            ]);
+            setAssignments(aRes.data || []);
+            setSubmissions(sRes.data || []);
+            setSubjects(subRes.data || []);
+        } catch (err) {
+            console.error("Failed to load data:", err);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     const handleAdd = async () => {
-        if (!form.title || !form.subject || !form.deadline)
-            return alert("Fill title, subject, and deadline");
-        const res = await assignmentsAPI.create(form);
-        setAssignments((a) => [res.data, ...a]);
-        setForm({ title: "", subject: "", deadline: "", desc: "" });
+        if (!form.title || !form.subject_id || !form.due_date)
+            return alert("Fill title, subject, and due date");
+        try {
+            const res = await assignmentsAPI.create(form);
+            if (res.data) {
+                const subject = subjects.find(s => s.id === form.subject_id);
+                const enriched = { ...res.data, subject: subject?.title || '' };
+                setAssignments((a) => [enriched, ...a]);
+                setForm({ title: "", subject_id: "", due_date: "", description: "" });
+            }
+        } catch (err) {
+            alert("Failed to create assignment: " + err.message);
+        }
     };
 
     const handleDelete = async (id) => {
-        await assignmentsAPI.delete(id);
-        setAssignments((a) => a.filter((x) => x.id !== id));
+        try {
+            await assignmentsAPI.delete(id);
+            setAssignments((a) => a.filter((x) => x.id !== id));
+        } catch (err) {
+            alert("Failed to delete: " + err.message);
+        }
+    };
+
+    const formatDate = (dateStr) => {
+        if (!dateStr) return "";
+        return new Date(dateStr).toLocaleDateString();
     };
 
     return (
@@ -45,23 +70,28 @@ const AssignmentsPage = () => {
                         value={form.title}
                         onChange={(e) => setForm({ ...form, title: e.target.value })}
                     />
-                    <input
-                        placeholder="Subject"
-                        value={form.subject}
-                        onChange={(e) => setForm({ ...form, subject: e.target.value })}
-                    />
+                    <select
+                        value={form.subject_id}
+                        onChange={(e) => setForm({ ...form, subject_id: e.target.value })}
+                        style={{ padding: '0.75rem', borderRadius: '8px', border: '1px solid #e5e7eb', fontSize: '0.95rem' }}
+                    >
+                        <option value="">Select Subject</option>
+                        {subjects.map((s) => (
+                            <option key={s.id} value={s.id}>{s.title}</option>
+                        ))}
+                    </select>
                 </div>
                 <div className="form-row">
                     <input
-                        type="date"
-                        value={form.deadline}
-                        onChange={(e) => setForm({ ...form, deadline: e.target.value })}
+                        type="datetime-local"
+                        value={form.due_date}
+                        onChange={(e) => setForm({ ...form, due_date: e.target.value })}
                         className="date-input"
                     />
                     <input
                         placeholder="Description (optional)"
-                        value={form.desc}
-                        onChange={(e) => setForm({ ...form, desc: e.target.value })}
+                        value={form.description}
+                        onChange={(e) => setForm({ ...form, description: e.target.value })}
                     />
                 </div>
                 <button className="save-btn" onClick={handleAdd}>Assign</button>
@@ -73,27 +103,30 @@ const AssignmentsPage = () => {
                         <div className="asgn-top">
                             <div>
                                 <p className="asgn-title">{a.title}</p>
-                                <p className="note-meta">{a.subject} · Due: {a.deadline}</p>
+                                <p className="note-meta">{a.subject} · Due: {formatDate(a.due_date)}</p>
                             </div>
                             <div className="asgn-actions">
                                 <button className="badge badge-purple" onClick={() => setShowSubmissions(showSubmissions === a.id ? null : a.id)}>
-                                    View Submissions ({submissions.filter(s => s.assignmentId === a.id).length})
+                                    View Submissions ({submissions.filter(s => s.assignment_id === a.id).length})
                                 </button>
                                 <button className="del-btn" onClick={() => handleDelete(a.id)}>Delete</button>
                             </div>
                         </div>
-                        {a.desc && <p className="asgn-desc">{a.desc}</p>}
+                        {a.description && <p className="asgn-desc">{a.description}</p>}
 
                         {showSubmissions === a.id && (
                             <div className="submissions-panel">
-                                {submissions.filter(s => s.assignmentId === a.id).map(sub => (
+                                {submissions.filter(s => s.assignment_id === a.id).map(sub => (
                                     <div key={sub.id} className="submission-item">
-                                        <p><strong>{sub.studentEmail}</strong></p>
-                                        <p>{sub.fileName || "work_submission.pdf"}</p>
-                                        <p className="note-meta">Submitted: {new Date(sub.createdAt).toLocaleString()}</p>
+                                        <p><strong>{sub.studentName || sub.studentEmail}</strong></p>
+                                        <p>{sub.file_url || "work_submission.pdf"}</p>
+                                        <p className="note-meta">Submitted: {new Date(sub.submitted_at).toLocaleString()}</p>
+                                        {sub.status === 'graded' && (
+                                            <p className="note-meta">Grade: {sub.marks}/15 {sub.feedback && `- ${sub.feedback}`}</p>
+                                        )}
                                     </div>
                                 ))}
-                                {submissions.filter(s => s.assignmentId === a.id).length === 0 && <p className="empty">No submissions yet.</p>}
+                                {submissions.filter(s => s.assignment_id === a.id).length === 0 && <p className="empty">No submissions yet.</p>}
                             </div>
                         )}
                     </div>
