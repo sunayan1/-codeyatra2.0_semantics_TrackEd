@@ -762,8 +762,8 @@ td {
 /* ── Feature Boxes (Student) ── */
 .feature-boxes {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 1.5rem;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.25rem;
     margin-bottom: 2rem;
 }
 
@@ -771,17 +771,19 @@ td {
     position: relative;
     background: #fff;
     border: 1px solid rgba(255, 255, 255, 0.8);
-    border-radius: 32px;
-    padding: 3.5rem 2rem;
+    border-radius: 28px;
+    padding: 2rem 1.25rem;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 1rem;
+    gap: 0.75rem;
     cursor: pointer;
     box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
     transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     text-align: center;
     overflow: hidden;
+    min-height: 240px;
+    justify-content: center;
 }
 
 .feature-box::after {
@@ -798,9 +800,9 @@ td {
 }
 
 .feature-icon {
-    font-size: 3.5rem;
-    margin-bottom: 0.5rem;
-    filter: drop-shadow(0 15px 12px rgba(0, 0, 0, 0.1));
+    font-size: 2.8rem;
+    margin-bottom: 0.25rem;
+    filter: drop-shadow(0 10px 8px rgba(0, 0, 0, 0.1));
     transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
@@ -809,17 +811,17 @@ td {
 }
 
 .feature-label {
-    font-size: 1.4rem;
+    font-size: 1.15rem;
     font-weight: 800;
     color: #0f172a;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.01em;
 }
 
 .feature-desc {
-    font-size: 0.95rem;
+    font-size: 0.85rem;
     color: #64748b;
-    line-height: 1.6;
-    max-width: 220px;
+    line-height: 1.4;
+    max-width: 180px;
     font-weight: 500;
 }
 
