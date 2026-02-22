@@ -69,7 +69,7 @@
 }
 
 .nav-btn {
-    background: linear-gradient(135deg, #a78bfa, #8b5cf6);
+    background: linear-gradient(135deg, #60a5fa, #2563eb);
     color: white;
     border: none;
     border-radius: 50%;
@@ -137,7 +137,7 @@
 }
 
 .grid-cell:hover {
-    background: #f3f0ff;
+    background: #eff6ff;
 }
 
 .grid-cell.empty-cell {
@@ -151,13 +151,13 @@
 }
 
 .grid-cell.today-cell {
-    background: rgba(139, 92, 246, 0.05);
+    background: rgba(37, 99, 235, 0.05);
 }
 
 .grid-cell.selected-cell {
-    border-color: #8b5cf6;
-    background: rgba(139, 92, 246, 0.08);
-    box-shadow: 0 0 0 1px rgba(139, 92, 246, 0.2);
+    border-color: #2563eb;
+    background: rgba(37, 99, 235, 0.08);
+    box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.2);
 }
 
 .cell-date {
@@ -241,17 +241,17 @@
 
 .cell-more {
     font-size: 0.58rem;
-    color: #7c3aed;
+    color: #2563eb;
     font-weight: 600;
     padding: 1px 4px;
 }
 
 .cell-event {
-    background: rgba(139, 92, 246, 0.07);
+    background: rgba(37, 99, 235, 0.07);
     border-radius: 3px;
     padding: 1px 4px;
     font-size: 0.58rem;
-    color: #7c3aed;
+    color: #2563eb;
 }
 
 .cell-event-title {
@@ -380,7 +380,7 @@
     padding: 8px;
     border: none;
     border-radius: 8px;
-    background: linear-gradient(135deg, #a78bfa, #8b5cf6);
+    background: linear-gradient(135deg, #60a5fa, #2563eb);
     color: white;
     font-weight: 600;
     font-size: 0.82rem;
@@ -545,7 +545,7 @@
     flex-shrink: 0;
     border: none;
     border-radius: 8px;
-    background: linear-gradient(135deg, #a78bfa, #8b5cf6);
+    background: linear-gradient(135deg, #60a5fa, #2563eb);
     color: white;
     font-size: 1.2rem;
     cursor: pointer;
@@ -638,7 +638,7 @@
 .popup-task-name {
     font-size: 1rem;
     font-weight: 600;
-    color: #7c3aed;
+    color: #2563eb;
     margin-bottom: 16px;
     padding: 8px 12px;
     background: rgba(139, 92, 246, 0.06);
@@ -701,7 +701,7 @@
     padding: 10px 16px;
     border: none;
     border-radius: 10px;
-    background: linear-gradient(135deg, #a78bfa, #8b5cf6);
+    background: linear-gradient(135deg, #60a5fa, #2563eb);
     color: white;
     font-weight: 600;
     font-size: 0.85rem;
