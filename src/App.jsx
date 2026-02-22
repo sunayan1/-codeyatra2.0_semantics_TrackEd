@@ -1,10 +1,10 @@
 import React from 'react';
-import AcademicPerformanceChart from './AcademicPerformanceChart';
+import AcademicPerformanceDashboard from './AcademicPerformanceChart';
 
 function App() {
   return (
-    <div className="min-h-screen bg-slate-50">
-      <AcademicPerformanceChart />
+    <div className="App">
+      <AcademicPerformanceDashboard />
     </div>
   );
 }

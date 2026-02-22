@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
     Chart as ChartJS,
     ArcElement,
@@ -6,10 +6,11 @@ import {
     Legend,
     CategoryScale,
     LinearScale,
-    BarElement
+    PointElement,
+    LineElement,
+    Filler
 } from 'chart.js';
-import { Doughnut, Bar } from 'react-chartjs-2';
-import './AcademicChart.css';
+import { Doughnut, Radar } from 'react-chartjs-2';
 
 ChartJS.register(
     ArcElement,
@@ -17,162 +18,132 @@ ChartJS.register(
     Legend,
     CategoryScale,
     LinearScale,
-    BarElement
+    PointElement,
+    LineElement,
+    Filler
 );
 
-const MAX = {
-    assignment: 10,
-    assessment: 15,
-    quiz: 20,
-    attendance: 5
+const MAX_MARKS = {
+    assignments: 25,
+    exams: 50,
+    quizzes: 15,
+    participation: 10
 };
 
-const AcademicPerformanceChart = () => {
+const AcademicPerformanceDashboard = () => {
     const [marks, setMarks] = useState({
-        assignment: 8,
-        assessment: 10,
-        quiz: 15,
-        attendance: 4
+        assignments: 20,
+        exams: 38,
+        quizzes: 12,
+        participation: 9
     });
 
-    const validatedData = useMemo(() => {
-        const result = {};
-        for (const key in MAX) {
-            let val = Number(marks[key]) || 0;
-            if (val < 0) val = 0;
-            if (val > MAX[key]) val = MAX[key];
-            result[key] = val;
-        }
-        return result;
-    }, [marks]);
-
-    const total = useMemo(() =>
-        Object.values(validatedData).reduce((a, b) => a + b, 0),
-        [validatedData]
-    );
-
-    const percent = useMemo(() => (total / 50) * 100, [total]);
-
-    const getPerformanceLabel = (p) => {
-        if (p >= 85) return "Outstanding";
-        if (p >= 70) return "Very Good";
-        if (p >= 55) return "Satisfactory";
-        if (p >= 40) return "Needs Improvement";
-        return "Critical";
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        const numValue = Math.min(Math.max(0, Number(value)), MAX_MARKS[name]);
+        setMarks(prev => ({ ...prev, [name]: numValue }));
     };
 
+    const totals = useMemo(() => {
+        const obtained = Object.values(marks).reduce((a, b) => a + b, 0);
+        const totalPossible = Object.values(MAX_MARKS).reduce((a, b) => a + b, 0);
+        const percentage = (obtained / totalPossible) * 100;
 
-    const ringChartData = {
+        let status = { label: 'Poor', class: 'status-poor' };
+        if (percentage >= 85) status = { label: 'Outstanding', class: 'status-outstanding' };
+        else if (percentage >= 70) status = { label: 'Very Good', class: 'status-good' };
+        else if (percentage >= 50) status = { label: 'Fair', class: 'status-fair' };
+
+        return { obtained, totalPossible, percentage, status };
+    }, [marks]);
+
+    const doughnutData = {
+        labels: ['Completed', 'Remaining'],
         datasets: [{
-            data: [total, 50 - total],
-            backgroundColor: ["#1db609ff", "#f81d1dff"],
-            borderWidth: 0
+            data: [totals.obtained, totals.totalPossible - totals.obtained],
+            backgroundColor: ['#6366f1', '#e2e8f0'],
+            borderWidth: 0,
+            hoverOffset: 4
         }]
     };
 
-    const ringChartOptions = {
-        cutout: "75%",
-        animation: { duration: 1000 },
-        plugins: {
-            legend: { display: false },
-            tooltip: { enabled: false }
-        },
-        maintainAspectRatio: false
-    };
-
-    const barChartData = {
-        labels: ["Assignments", "Assessments", "Quizzes", "Attendance"],
-        datasets: [
-            {
-                label: "Completed",
-                data: [
-                    validatedData.assignment,
-                    validatedData.assessment,
-                    validatedData.quiz,
-                    validatedData.attendance
-                ],
-                backgroundColor: "#1db609ff",
-                borderRadius: 8
-            },
-            {
-                label: "Remaining",
-                data: [
-                    MAX.assignment - validatedData.assignment,
-                    MAX.assessment - validatedData.assessment,
-                    MAX.quiz - validatedData.quiz,
-                    MAX.attendance - validatedData.attendance
-                ],
-                backgroundColor: "#ef4444",
-                borderRadius: 8
-            }
-        ]
-    };
-
-    const barChartOptions = {
-        indexAxis: "y",
-        responsive: true,
-        maintainAspectRatio: false,
-        animation: { duration: 900 },
-        scales: {
-            x: {
-                stacked: true,
-                max: 20,
-                grid: { display: false }
-            },
-            y: {
-                stacked: true,
-                grid: { display: false }
-            }
-        },
-        plugins: {
-            legend: { position: "bottom" }
-        }
+    const radarData = {
+        labels: ['Assignments', 'Exams', 'Quizzes', 'Participation'],
+        datasets: [{
+            label: 'Performance %',
+            data: [
+                (marks.assignments / MAX_MARKS.assignments) * 100,
+                (marks.exams / MAX_MARKS.exams) * 100,
+                (marks.quizzes / MAX_MARKS.quizzes) * 100,
+                (marks.participation / MAX_MARKS.participation) * 100
+            ],
+            backgroundColor: 'rgba(99, 102, 241, 0.2)',
+            borderColor: '#6366f1',
+            pointBackgroundColor: '#6366f1',
+            fill: true
+        }]
     };
 
     return (
-        <div className="academic-dashboard">
-            <div className="container">
-                <header className="academic-header">
-                    <h1>Academic Performance</h1>
-                    <div className="subtitle">Weighted Evaluation • Total 50 Marks</div>
-                </header>
-
-                <div className="stats" id="dashboard-stats">
-                    <div className="stat-box">
-                        <span className="stat-label">Total Marks</span>
-                        <span className="stat-value" id="totalScore">{total} / 50</span>
-                    </div>
-                    <div className="stat-box">
-                        <span className="stat-label">Percentage</span>
-                        <span className="stat-value" id="totalPercent">{percent.toFixed(1)}%</span>
-                    </div>
+        <div className="dashboard-container">
+            <div className="glass-card">
+                <div className="header-section">
+                    <h1>TrackEd Analytics</h1>
+                    <p>Real-time academic performance monitoring and projection</p>
                 </div>
 
-                <div className="chart-area">
-                    <div className="ring-wrapper" id="ring-container">
-                        <Doughnut
-                            data={ringChartData}
-                            options={ringChartOptions}
-                            id="totalRing"
-                        />
-                        <div className="center-info">
-                            <div id="centerScore">{total} / 50</div>
-                            <div id="performanceLabel">{getPerformanceLabel(percent)}</div>
+                <div className="main-grid">
+                    <div className="metrics-column">
+                        <div className="metric-card">
+                            <span className="metric-label">Overall Percentage</span>
+                            <span className="metric-value">{totals.percentage.toFixed(1)}%</span>
+                            <span className={`status-badge ${totals.status.class}`}>{totals.status.label}</span>
+                        </div>
+
+                        <div className="metric-card">
+                            <span className="metric-label">Score Summary</span>
+                            <span className="metric-value">{totals.obtained} / {totals.totalPossible}</span>
+                        </div>
+
+                        <div className="metric-card">
+                            <span className="metric-label">Adjust Metrics</span>
+                            <div className="input-grid">
+                                {Object.keys(MAX_MARKS).map(key => (
+                                    <div key={key} className="input-group">
+                                        <label>{key.charAt(0).toUpperCase() + key.slice(1)} (Max {MAX_MARKS[key]})</label>
+                                        <input
+                                            type="number"
+                                            name={key}
+                                            value={marks[key]}
+                                            onChange={handleInputChange}
+                                        />
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     </div>
 
-                    <div className="bar-chart-container" id="bar-chart-container">
-                        <Bar
-                            data={barChartData}
-                            options={barChartOptions}
-                            id="barChart"
-                        />
+                    <div className="chart-column">
+                        <div className="chart-container">
+                            <h3 style={{ marginBottom: '1.5rem', color: '#64748b' }}>Performance Distribution</h3>
+                            <div style={{ width: '100%', height: '300px' }}>
+                                <Radar data={radarData} options={{ maintainAspectRatio: false }} />
+                            </div>
+                            <div style={{ width: '200px', height: '200px', marginTop: '2rem' }}>
+                                <Doughnut
+                                    data={doughnutData}
+                                    options={{
+                                        cutout: '70%',
+                                        plugins: { legend: { display: false } }
+                                    }}
+                                />
+                            </div>
+                        </div>
                     </div>
                 </div>
-
             </div>
         </div>
     );
 };
 
-export default AcademicPerformanceChart;
+export default AcademicPerformanceDashboard;
