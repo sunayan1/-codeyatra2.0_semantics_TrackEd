@@ -1,31 +1,35 @@
-# TrackEd MVP Backend
+# TrackEd - CodeYatra 2.0
 
-This is the Node.js backend for the TrackEd MVP, implementing end-to-end workflows for teachers and students using Express and Supabase.
+A backend system for managing subjects, assignments, and submissions for teachers and students, built with Node.js, Express, and Supabase.
 
-## Setup Instructions
 
-### 1. Database Setup (Supabase)
-1. Since the `TrackEd1` MCP server could not be located to automate this, you must run the provided SQL scripts manually in your Supabase SQL Editor.
-2. Execute the `supabase/schema.sql` file in your Supabase project's SQL editor to create the necessary tables.
-3. Once the tables are created, you can execute the `supabase/seed.sql` file (after adding valid user UUIDs from the Auth table) to populate sample test data.
+## Project Overview
 
-### 2. Environment Setup
-1. Open the `.env` file in the root directory.
-2. Replace `YOUR_SUPABASE_URL` and `YOUR_SUPABASE_SERVICE_ROLE_KEY` with your actual Supabase project credentials. 
-*(Note: Since we are bypassing row-level-security externally and enforcing role-based access in this Node.js API, the Service Role key can be used, or the Anon key combined with proper RLS).*
+This is a backend API for managing educational workflows. Teachers can create subjects and assignments, and students can submit their work. The system enforces role-based access and integrates with Supabase Auth.
 
-### 3. Running the Server
-Install dependencies and start the backend:
-```bash
-npm install
-npm run dev
-```
-*(You may need to add `"dev": "nodemon server.js"` to your `package.json` scripts if not automatically added, or simply run `npx nodemon server.js`)*
+## Features
 
-## API Endpoints Overview
-- **Auth**: `GET /api/auth/profile`
-- **Subjects**: `GET /api/subjects`, `POST /api/subjects` (Teacher only)
-- **Notes**: `GET /api/notes/subject/:subjectId`, `POST /api/notes` (Teacher only), `POST /api/notes/:noteId/student-notes` (Student only)
-- **Assignments**: `GET /api/assignments/subject/:subjectId`, `POST /api/assignments` (Teacher only), `POST /api/assignments/:assignmentId/submissions` (Student only), `PUT /api/assignments/submissions/:submissionId/grade` (Teacher only)
+- Teacher and student roles with RLS enforcement
+- CRUD for subjects and assignments
+- Supabase authentication and authorization
 
-**Authentication:** Pass the Supabase Auth JWT in the `Authorization: Bearer <token>` header for all requests.
+## Tech Stack
+
+- Node.js
+- Express.js
+- Supabase (PostgreSQL + Auth)
+- Axios (for API requests)
+- Nodemon (for development)
+
+### Prerequisites
+
+- Node.js 18+
+- npm
+- Supabase project with Auth and Database
+
+## Environment Variables
+
+Create a `.env` file in the root:
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+PORT=5000
