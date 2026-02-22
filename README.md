@@ -30,6 +30,6 @@ This is a backend API for managing educational workflows. Teachers can create su
 ## Environment Variables
 
 Create a `.env` file in the root:
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
-PORT=5000
+-SUPABASE_URL=https://your-project.supabase.co
+-SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+-PORT=5000
