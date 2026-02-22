@@ -1,0 +1,121 @@
+/* OVERLAY */
+.bookshelf-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(8px);
+  z-index: 999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* MODAL */
+.bookshelf-modal {
+  width: 80%;
+  max-width: 900px;
+  height: 80%;
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(20px);
+  border-radius: 24px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* HEADER */
+.bookshelf-modal header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.bookshelf-modal h2 {
+  font-size: 22px;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+/* UPLOAD */
+.upload-btn {
+  margin: 16px 0;
+  display: inline-block;
+  padding: 10px 18px;
+  background: linear-gradient(135deg, #a78bfa, #8b5cf6);
+  color: white;
+  border-radius: 999px;
+  font-weight: 600;
+  cursor: pointer;
+  width: fit-content;
+}
+
+/* FILE GRID */
+.file-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 16px;
+  overflow-y: auto;
+  padding-top: 10px;
+}
+
+/* FILE CARD */
+.file-card {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 16px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: transform 0.2s ease;
+}
+
+.file-card:hover {
+  transform: translateY(-4px);
+}
+
+/* PREVIEW */
+.file-preview {
+  font-size: 36px;
+  text-align: center;
+  cursor: pointer;
+}
+
+/* INFO */
+.file-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.file-name {
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.file-date {
+  font-size: 11px;
+  color: #6b7280;
+}
+
+/* DELETE */
+.delete-btn {
+  background: none;
+  border: none;
+  align-self: flex-end;
+  cursor: pointer;
+}
+
+/* EMPTY */
+.empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: #6b7280;
+}
