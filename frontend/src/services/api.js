@@ -175,6 +175,7 @@ export const subjectsAPI = {
     enrollAllBySubject: (body) => request("POST", "/subjects/enroll/all", body),
     getStudents: (subjectId) => request("GET", `/subjects/${subjectId}/students`),
     unenrollStudent: (enrollmentId) => request("DELETE", `/subjects/enroll/${enrollmentId}`),
+    getDashboardStats: () => request("GET", "/subjects/dashboard-stats"),
 };
 
 export const authAPI = {

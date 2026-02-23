@@ -21,10 +21,10 @@ const StudentDashboard = () => {
     const [showProfile, setShowProfile] = useState(false);
     const [showSubjectSelection, setShowSubjectSelection] = useState(false);
     const [stats, setStats] = useState([
-        { icon: "", label: "Attendance", value: "—", color: "#2563eb" },
-        { icon: "", label: "Subjects", value: "—", color: "#059669" },
-        { icon: "", label: "Submitted", value: "—", color: "#2563eb" },
-        { icon: "", label: "Tasks Due", value: "—", color: "#d97706" },
+        { icon: "📊", label: "Attendance", value: "—", color: "#2563eb" },
+        { icon: "📚", label: "Subjects", value: "—", color: "#059669" },
+        { icon: "✅", label: "Submitted", value: "—", color: "#2563eb" },
+        { icon: "⏳", label: "Tasks Due", value: "—", color: "#d97706" },
     ]);
     const [recentGrades, setRecentGrades] = useState([]);
 
@@ -78,10 +78,10 @@ const StudentDashboard = () => {
             setRecentGrades(graded);
 
             setStats([
-                { icon: "", label: "Attendance", value: `${attPct}%`, color: "#2563eb" },
-                { icon: "", label: "Subjects", value: String(subjects.length), color: "#059669" },
-                { icon: "", label: "Submitted", value: String(submissions.length), color: "#2563eb" },
-                { icon: "", label: "Tasks Due", value: String(tasksDue), color: "#d97706" },
+                { icon: "📊", label: "Attendance", value: `${attPct}%`, color: "#2563eb" },
+                { icon: "📚", label: "Subjects", value: String(subjects.length), color: "#059669" },
+                { icon: "✅", label: "Submitted", value: String(submissions.length), color: "#2563eb" },
+                { icon: "⏳", label: "Tasks Due", value: String(tasksDue), color: "#d97706" },
             ]);
         } catch (err) {
             console.error("Failed to load dashboard stats:", err);

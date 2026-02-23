@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AttendancePage from "./teacher/AttendancePage";
 import NotesPage from "./teacher/NotesPage";
 import AssignmentsPage from "./teacher/AssignmentsPage";
@@ -6,6 +6,7 @@ import StudentRecordsPage from "./teacher/StudentRecordsPage";
 import SubjectsPage from "./teacher/SubjectsPage";
 import { useAuth } from "../context/AuthContext";
 import ProfileModal from "../components/ProfileModal";
+import { subjectsAPI } from "../services/api";
 import "./Dashboard.css";
 
 const navItems = [
@@ -17,17 +18,31 @@ const navItems = [
   { key: "records", icon: "", label: "Student Records" },
 ];
 
-const stats = [
-  { icon: "", label: "Students", value: "132", color: "#2563eb" },
-  { icon: "", label: "Assignments Set", value: "18", color: "#2563eb" },
-  { icon: "", label: "Classes Today", value: "4", color: "#059669" },
-  { icon: "", label: "Low Attendance", value: "7", color: "#dc2626" },
-];
-
 const TeacherDashboard = () => {
   const { user, logout } = useAuth();
   const [page, setPage] = useState("home");
   const [showProfile, setShowProfile] = useState(false);
+  const [stats, setStats] = useState([
+    { icon: "👥", label: "Students", value: "—", color: "#2563eb" },
+    { icon: "📝", label: "Assignments", value: "—", color: "#2563eb" },
+    { icon: "📚", label: "Subjects", value: "—", color: "#059669" },
+    { icon: "⚠️", label: "Low Attendance", value: "—", color: "#dc2626" },
+  ]);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await subjectsAPI.getDashboardStats();
+        const d = res.data?.data || res.data || {};
+        setStats([
+          { icon: "👥", label: "Students", value: String(d.students ?? 0), color: "#2563eb" },
+          { icon: "📝", label: "Assignments", value: String(d.assignments ?? 0), color: "#2563eb" },
+          { icon: "📚", label: "Subjects", value: String(d.subjects ?? 0), color: "#059669" },
+          { icon: "⚠️", label: "Low Attendance", value: String(d.lowAttendance ?? 0), color: "#dc2626" },
+        ]);
+      } catch (_) {}
+    })();
+  }, [page]);
 
   const renderPage = () => {
     if (page === "subjects") return <SubjectsPage />;
