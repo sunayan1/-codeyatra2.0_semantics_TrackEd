@@ -182,4 +182,38 @@
     color: #fff;
     margin: 2rem 0;
     box-shadow: 0 0 30px rgba(124, 58, 237, 0.5);
+    transition: all 0.3s ease;
+}
+
+.score-badge.passed {
+    background: #10b981;
+    box-shadow: 0 0 30px rgba(16, 185, 129, 0.5);
+}
+
+.score-badge.failed {
+    background: #ef4444;
+    box-shadow: 0 0 30px rgba(239, 68, 68, 0.5);
+}
+
+.result-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.secondary-btn {
+    background: rgba(255, 255, 255, 0.05);
+    color: #cbd5e1;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 1rem 2.5rem;
+    border-radius: 16px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.secondary-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
 }

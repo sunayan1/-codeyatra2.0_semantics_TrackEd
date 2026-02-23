@@ -28,16 +28,29 @@ const LevelContentPage = () => {
     };
 
     const handleAnswer = (optionIndex) => {
-        if (optionIndex === level.quiz[quizIndex].answer) {
-            setScore(score + 1);
+        const isCorrect = optionIndex === level.quiz[quizIndex].answer;
+        const newScore = isCorrect ? score + 1 : score;
+        
+        if (isCorrect) {
+            setScore(newScore);
         }
 
         if (quizIndex < level.quiz.length - 1) {
             setQuizIndex(quizIndex + 1);
         } else {
             setQuizFinished(true);
-            saveProgress();
+            if (newScore === level.quiz.length) {
+                saveProgress();
+            }
         }
+    };
+
+    const handleRetry = () => {
+        setQuizIndex(0);
+        setScore(0);
+        setQuizFinished(false);
+        setShowQuiz(false);
+        setCurrentSlide(0);
     };
 
     const saveProgress = () => {
@@ -49,15 +62,25 @@ const LevelContentPage = () => {
     };
 
     if (quizFinished) {
+        const passed = score === level.quiz.length;
         return (
             <div className="content-overlay">
                 <div className="result-card">
-                    <h2>Level Completed!</h2>
-                    <div className="score-badge">{Math.round((score / level.quiz.length) * 100)}%</div>
-                    <p>You've unlocked the next level!</p>
-                    <button className="primary-btn" onClick={() => navigate(`/student/subject/${subjectId}`)}>
-                        Back to Roadmap
-                    </button>
+                    <h2>{passed ? "Level Completed!" : "Quiz Failed!"}</h2>
+                    <div className={`score-badge ${passed ? "passed" : "failed"}`}>
+                        {Math.round((score / level.quiz.length) * 100)}%
+                    </div>
+                    <p>{passed ? "You've unlocked the next level!" : "Review the content and try again."}</p>
+                    <div className="result-actions">
+                        {!passed && (
+                            <button className="primary-btn" onClick={handleRetry}>
+                                Try Again
+                            </button>
+                        )}
+                        <button className={passed ? "primary-btn" : "secondary-btn"} onClick={() => navigate(`/student/subject/${subjectId}`)}>
+                            Back to Roadmap
+                        </button>
+                    </div>
                 </div>
             </div>
         );
