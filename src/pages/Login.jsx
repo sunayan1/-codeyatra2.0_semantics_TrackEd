@@ -17,9 +17,16 @@ const Login = () => {
 
         try {
             const res = await authAPI.login({ email, password, role });
-            if (res.data) {
-                login(email, role);
-                navigate(role === "student" ? "/student" : "/teacher");
+            if (res.data && res.data.success) {
+                // Use the role from the database response, not the locally selected role
+                const serverRole = res.data.data?.user?.role || role;
+                const token = res.data.data?.token;
+
+                // Optionally store the token for authenticated API calls later
+                if (token) localStorage.setItem('authToken', token);
+
+                login(email, serverRole);
+                navigate(serverRole === "student" ? "/student" : "/teacher");
             } else {
                 alert("Invalid credentials. Please try again.");
             }

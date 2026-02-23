@@ -23,6 +23,36 @@ const StudentNotesPage = () => {
         setIsLoading(false);
     };
 
+    // Convert Base64 Data URL to a Blob and open in a new tab
+    const handleView = (note) => {
+        if (!note.file_url) {
+            alert("No file attached to this note.");
+            return;
+        }
+        try {
+            // If it's a plain URL (http/https), open directly
+            if (note.file_url.startsWith('http')) {
+                window.open(note.file_url, '_blank');
+                return;
+            }
+            // Otherwise treat as Base64 Data URL
+            const arr = note.file_url.split(',');
+            const mime = arr[0].match(/:(.*?);/)[1];
+            const bstr = atob(arr[1]);
+            let n = bstr.length;
+            const u8arr = new Uint8Array(n);
+            while (n--) u8arr[n] = bstr.charCodeAt(n);
+            const blob = new Blob([u8arr], { type: mime });
+            const blobUrl = URL.createObjectURL(blob);
+            const newTab = window.open(blobUrl, '_blank');
+            if (!newTab) alert("Please allow popups to view files.");
+            setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
+        } catch (e) {
+            console.error("Error opening file:", e);
+            alert("Could not open file. It may be corrupted.");
+        }
+    };
+
     return (
         <div className="dashboard">
             <StudentSidebar logout={logout} />
@@ -47,7 +77,14 @@ const StudentNotesPage = () => {
                                         <p className="note-title">{n.title}</p>
                                         <p className="note-meta">{n.subject} · {n.date}</p>
                                     </div>
-                                    <span className="badge badge-purple">View Note</span>
+                                    <button
+                                        className="badge badge-purple"
+                                        onClick={() => handleView(n)}
+                                        style={{ cursor: 'pointer', border: 'none' }}
+                                        title={n.file_url ? 'Click to open PDF' : 'No file attached'}
+                                    >
+                                        {n.file_url ? '📄 View Note' : '⚠️ No File'}
+                                    </button>
                                 </div>
                             ))}
                         </div>
