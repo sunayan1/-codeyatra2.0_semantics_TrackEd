@@ -11,12 +11,12 @@ import ProfileModal from "../components/ProfileModal";
 import "./Dashboard.css";
 
 const navItems = [
-  { key: "home", icon: "", label: "Dashboard" },
-  { key: "subjects", icon: "", label: "Subjects" },
-  { key: "attendance", icon: "", label: "Attendance" },
-  { key: "notes", icon: "", label: "Notes" },
-  { key: "assignments", icon: "", label: "Assignments" },
-  { key: "records", icon: "", label: "Student Records" },
+  { key: "home", icon: "📊", label: "Dashboard" },
+  { key: "subjects", icon: "📚", label: "Subjects" },
+  { key: "attendance", icon: "📝", label: "Attendance" },
+  { key: "notes", icon: "📓", label: "Notes" },
+  { key: "assignments", icon: "📋", label: "Assignments" },
+  { key: "records", icon: "🗂️", label: "Student Records" },
 ];
 
 
@@ -26,10 +26,10 @@ const TeacherDashboard = () => {
   const [showProfile, setShowProfile] = useState(false);
 
   const [stats, setStats] = useState([
-    { label: "Total Students", value: "0", color: "#2563eb" },
-    { label: "Assignments Set", value: "0", color: "#2563eb" },
-    { label: "Enrolled Subjects", value: "0", color: "#059669" },
-    { label: "Waitlist/Low Att.", value: "0", color: "#dc2626" },
+    { label: "Total Students", value: "0", color: "#2563eb", icon: "👥" },
+    { label: "Assignments Set", value: "0", color: "#2563eb", icon: "📝" },
+    { label: "Enrolled Subjects", value: "0", color: "#059669", icon: "📖" },
+    { label: "Low Attendance", value: "0", color: "#dc2626", icon: "⚠️" },
   ]);
 
   useEffect(() => {
@@ -55,10 +55,10 @@ const TeacherDashboard = () => {
         const lowAtt = students.filter(s => s.attendance < 75).length;
 
         setStats([
-          { label: "Total Students", value: students.length.toString(), color: "#2563eb" },
-          { label: "Assignments Set", value: assignments.length.toString(), color: "#2563eb" },
-          { label: "Enrolled Subjects", value: subjects.length.toString(), color: "#059669" },
-          { label: "Low Attendance", value: lowAtt.toString(), color: "#dc2626" },
+          { label: "Total Students", value: students.length.toString(), color: "#2563eb", icon: "👥" },
+          { label: "Assignments Set", value: assignments.length.toString(), color: "#2563eb", icon: "📝" },
+          { label: "Enrolled Subjects", value: subjects.length.toString(), color: "#059669", icon: "📖" },
+          { label: "Low Attendance", value: lowAtt.toString(), color: "#dc2626", icon: "⚠️" },
         ]);
       } catch (e) {
         console.error("Error loading teacher stats:", e);
@@ -94,9 +94,9 @@ const TeacherDashboard = () => {
         <section className="quick-actions">
           <h3>Quick Actions</h3>
           <div className="action-grid">
-            <button className="action-card" onClick={() => setPage("attendance")}>Record Attendance</button>
-            <button className="action-card" onClick={() => setPage("notes")}>Upload Notes</button>
-            <button className="action-card" onClick={() => setPage("assignments")}>New Assignment</button>
+            <button className="action-card" onClick={() => setPage("attendance")}>📅 Record Attendance</button>
+            <button className="action-card" onClick={() => setPage("notes")}>📤 Upload Notes</button>
+            <button className="action-card" onClick={() => setPage("assignments")}>➕ New Assignment</button>
           </div>
         </section>
       </>
@@ -125,10 +125,10 @@ const TeacherDashboard = () => {
         <header className="dash-header">
           <div>
             <h1>{navItems.find((n) => n.key === page)?.label ?? "Dashboard"}</h1>
-            <p>Teacher View: <strong>{user?.email}</strong></p>
+            <p>Teacher View: <strong>{user?.name || user?.email}</strong></p>
           </div>
           <div className="avatar" onClick={() => setShowProfile(true)} style={{ background: "#2563eb", cursor: 'pointer' }}>
-            {user?.email?.[0]?.toUpperCase()}
+            {(user?.name || user?.email)?.[0]?.toUpperCase()}
           </div>
         </header>
         {renderPage()}

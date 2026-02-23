@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { authAPI } from "../services/api";
+import { ALL_STUDENTS } from "../data/progressData";
 import "./Login.css";
 
 const Login = () => {
@@ -15,24 +16,35 @@ const Login = () => {
         e.preventDefault();
         if (!email || !password) return alert("Please fill all fields");
 
-        try {
-            const res = await authAPI.login({ email, password, role });
-            if (res.data && res.data.success) {
-                // Use the role from the database response, not the locally selected role
-                const serverRole = res.data.data?.user?.role || role;
-                const token = res.data.data?.token;
+        // --- Demo Login Bypass ---
+        console.log(`Demo login attempt: ${email} as ${role}`);
 
-                // Optionally store the token for authenticated API calls later
-                if (token) localStorage.setItem('authToken', token);
+        let canLogin = false;
+        let userData = { email, role };
 
-                login(email, serverRole);
-                navigate(serverRole === "student" ? "/student" : "/teacher");
+        if (role === "student") {
+            const student = ALL_STUDENTS.find(s => s.email.toLowerCase() === email.toLowerCase());
+            if (student) {
+                canLogin = true;
+                userData.name = student.name;
             } else {
-                alert("Invalid credentials. Please try again.");
+                alert("Demo Student email not found. Use one from our records (e.g. anjana@gmail.com)");
+                return;
             }
-        } catch (error) {
-            console.error("Login error:", error);
-            alert("A server error occurred. Please try again later.");
+        } else {
+            // Teacher demo bypass - allow any email for now, or a specific one
+            canLogin = true;
+            userData.name = "Demo Teacher";
+        }
+
+        if (canLogin) {
+            // Mock successful login
+            const dummyToken = "demo-token-" + Date.now();
+            localStorage.setItem('authToken', dummyToken);
+            login(email, role, userData.name);
+            navigate(role === "student" ? "/student" : "/teacher");
+        } else {
+            alert("Invalid demo credentials.");
         }
     };
 

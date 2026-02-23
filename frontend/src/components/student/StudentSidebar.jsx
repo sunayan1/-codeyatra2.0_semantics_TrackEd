@@ -6,16 +6,16 @@ const StudentSidebar = ({ logout }) => {
     const location = useLocation();
 
     const navItems = [
-        { key: "home", path: "/student", icon: "", label: "Dashboard" },
-        { key: "notes", path: "/student/notes", icon: "", label: "My Notes" },
-        { key: "asgn", path: "/student/assignments", icon: "", label: "Assignments" },
-        { key: "room", path: "/student/study-room", icon: "", label: "Study Room" },
+        { key: "home", path: "/student", icon: "🏠", label: "Dashboard" },
+        { key: "notes", path: "/student/notes", icon: "📓", label: "My Notes" },
+        { key: "asgn", path: "/student/assignments", icon: "✍️", label: "Assignments" },
+        { key: "room", path: "/student/study-room", icon: "🏠", label: "Study Room" },
     ];
 
     return (
         <aside className="sidebar">
             <div className="logo" onClick={() => navigate("/student")} style={{ cursor: 'pointer' }}>
-                SmartCampus
+                🎓 SmartCampus
             </div>
 
             <div className="sidebar-section">
@@ -42,7 +42,7 @@ const StudentSidebar = ({ logout }) => {
                             to={`/student/subject/${subject.id}`}
                             className={`sub-link ${location.pathname.includes(subject.id) ? "active" : ""}`}
                         >
-                            <i>•</i> {subject.title}
+                            <i style={{ fontStyle: 'normal' }}>📖</i> {subject.title}
                         </Link>
                     ))}
                 </div>

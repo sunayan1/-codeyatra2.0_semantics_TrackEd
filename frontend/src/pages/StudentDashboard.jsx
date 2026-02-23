@@ -11,10 +11,10 @@ import ProgressTracker from "../components/student/ProgressTracker";
 import "./Dashboard.css";
 
 const featureBoxes = [
-    { key: "subjects", icon: "", label: "Learning Path", path: "/student/subjects", color: "#2563eb", desc: "Interactive roadmaps & levels" },
-    { key: "notes", icon: "", label: "My Notes", path: "/student/notes", color: "#2563eb", desc: "Master your chapters" },
-    { key: "asgn", icon: "", label: "Assignments", path: "/student/assignments", color: "#f59e0b", desc: "Submit and grow" },
-    { key: "room", icon: "", label: "Study Room", path: "/student/study-room", color: "#059669", desc: "Your focused workspace" },
+    { key: "subjects", icon: "🗺️", label: "Learning Path", path: "/student/subjects", color: "#2563eb", desc: "Interactive roadmaps & levels" },
+    { key: "notes", icon: "📓", label: "My Notes", path: "/student/notes", color: "#2563eb", desc: "Master your chapters" },
+    { key: "asgn", icon: "✍️", label: "Assignments", path: "/student/assignments", color: "#f59e0b", desc: "Submit and grow" },
+    { key: "room", icon: "🏠", label: "Study Room", path: "/student/study-room", color: "#059669", desc: "Your focused workspace" },
 ];
 
 const StudentDashboard = () => {
@@ -25,10 +25,10 @@ const StudentDashboard = () => {
     const [showSubjectSelection, setShowSubjectSelection] = useState(false);
 
     const [stats, setStats] = useState([
-        { label: "Attendance", value: "0%", color: "#2563eb" },
-        { label: "Assignments", value: "0/0", color: "#2563eb" },
-        { label: "Subjects", value: "0", color: "#059669" },
-        { label: "Status", value: "Good", color: "#d97706" },
+        { label: "Attendance", value: "0%", color: "#2563eb", icon: "📅" },
+        { label: "Assignments", value: "0/0", color: "#2563eb", icon: "📝" },
+        { label: "Subjects", value: "0", color: "#059669", icon: "📚" },
+        { label: "Status", value: "Good", color: "#d97706", icon: "✨" },
     ]);
 
     useEffect(() => {
@@ -61,10 +61,10 @@ const StudentDashboard = () => {
                 const completedCount = submittedAsgnIds.size;
 
                 setStats([
-                    { label: "Attendance", value: `${attendance}%`, color: "#2563eb" },
-                    { label: "Assignments", value: `${completedCount} / ${asgnData.length}`, color: "#2563eb" },
-                    { label: "Subjects", value: subjData.length.toString(), color: "#059669" },
-                    { label: "Status", value: attendance < 75 ? "At Risk" : "Good", color: "#d97706" },
+                    { label: "Attendance", value: `${attendance}%`, color: "#2563eb", icon: "📅" },
+                    { label: "Assignments", value: `${completedCount} / ${asgnData.length}`, color: "#2563eb", icon: "📝" },
+                    { label: "Subjects", value: subjData.length.toString(), color: "#059669", icon: "📚" },
+                    { label: "Status", value: attendance < 75 ? "At Risk" : "Good", color: "#d97706", icon: "✨" },
                 ]);
             } catch (e) {
                 console.error("Error loading dashboard stats:", e);

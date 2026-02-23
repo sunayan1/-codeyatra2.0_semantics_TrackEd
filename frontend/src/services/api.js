@@ -1,9 +1,8 @@
-// Minimal API stub — uses localStorage for hackathon demo persistence.
-// Allows data to flow between Teacher and Student dashboards without a real backend.
+import { ALL_STUDENTS, STUDENT_PROGRESS } from '../data/progressData';
 
 const BASE_URL = 'http://localhost:5000/api';
 
-const isBackendOnline = true; // Toggle this if you have a real backend running
+const isBackendOnline = false; // Toggle this if you have a real backend running
 
 const request = async (method, endpoint, body) => {
   if (isBackendOnline) {
@@ -21,18 +20,59 @@ const request = async (method, endpoint, body) => {
       const json = await res.json();
       if (!res.ok) {
         console.warn(`Backend error ${res.status}:`, json.error || json.message);
-        // If it's a 4xx error specifically, we might want to throw or return the error
-        // But for "white screen" safety, let's treat non-OK as trigger for fallback
         throw new Error(json.error || `HTTP ${res.status}`);
       }
       return { data: json };
     } catch (error) {
       console.warn(`Backend request failed: ${endpoint}.`, error.message);
-      // Fall through to localStorage fallback
     }
   }
 
-  // fallback to localStorage for Demo
+  // --- Demo Data Mocking ---
+  if (!isBackendOnline) {
+    // Attendance Subjects & Main Subjects List
+    if ((endpoint === '/attendance/subjects' || endpoint === '/subjects') && method === 'GET') {
+      return { data: [{ id: 'demo-subject-1', title: 'Data Structure' }] };
+    }
+
+    // Attendance Students
+    if (endpoint.includes('/attendance/subjects/') && endpoint.includes('/students') && method === 'GET') {
+      const demoStudents = ALL_STUDENTS.map((s, idx) => ({
+        id: `student-${idx + 1}`,
+        full_name: s.name,
+        email: s.email
+      }));
+      return { data: demoStudents };
+    }
+
+    // Attendance Records
+    if (endpoint.includes('/attendance/subjects/') && !endpoint.includes('/students') && method === 'GET') {
+      return { data: [] }; // Default to no records so UI falls back to "present"
+    }
+
+    // Student Progress (Reports)
+    if (endpoint === '/subjects/students/all' && method === 'GET') {
+      const progressData = ALL_STUDENTS.map((s, idx) => {
+        const stats = STUDENT_PROGRESS[s.email] || { attendance: 0, assignments: [] };
+        return {
+          id: `student-${idx + 1}`,
+          full_name: s.name,
+          email: s.email,
+          attendance: stats.attendance,
+          completedAssignments: stats.assignments.filter(a => a.status === 'submitted').length,
+          totalAssignments: stats.assignments.length || 1, // Fallback to 1 if no assignment data
+          assignments: stats.assignments.map(a => ({
+            title: a.title,
+            status: a.status,
+            marks: a.grade === 'A+' ? 15 : a.grade === 'A' ? 14 : a.grade === 'A-' ? 13 : a.grade === 'B+' ? 12 : a.grade === 'B' ? 11 : a.grade === 'B-' ? 10 : a.grade === 'C+' ? 9 : 0
+          }))
+        };
+      });
+      return { data: progressData };
+    }
+  }
+
+  // fallback to localStorage for Demo Persistence
   try {
     const storageKey = `smartcampus_${endpoint.split('/')[1]}`;
     let data = JSON.parse(localStorage.getItem(storageKey) || '[]');
@@ -128,10 +168,11 @@ export const assignmentsAPI = {
 };
 
 export const subjectsAPI = {
-
   getMine: () => request('GET', '/subjects'),
+  getAvailable: () => request('GET', '/subjects/available'),
   create: (body) => request('POST', '/subjects', body),
   enroll: (body) => request('POST', '/subjects/enroll', body),
+  enrollSelf: (body) => request('POST', '/subjects/enroll-self', body),
   getStudents: (subjectId) => request('GET', `/subjects/${subjectId}/students`),
   unenroll: (enrollmentId) => request('DELETE', `/subjects/enroll/${enrollmentId}`),
   getProgress: () => request('GET', '/subjects/students/all'),

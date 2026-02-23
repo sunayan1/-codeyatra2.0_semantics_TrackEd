@@ -164,11 +164,11 @@ const StudentAssignmentsPage = () => {
                                             </div>
 
                                             {/* Reference material button — shown only if teacher attached one */}
-                                            {(a.content_url || a.ref_url) && (
+                                            {a.content_url && (
                                                 <button
                                                     className="badge badge-blue"
                                                     style={{ border: "none", cursor: "pointer", whiteSpace: "nowrap" }}
-                                                    onClick={() => handleViewFile(a.content_url || a.ref_url)}
+                                                    onClick={() => handleViewFile(a.content_url)}
                                                     title={`View reference material`}
                                                 >
                                                     📎 View Reference
