@@ -3,9 +3,9 @@ import React from 'react';
 const ProfileModal = ({ user, onClose, onLogout }) => {
     if (!user) return null;
 
-    // Use full_name from backend, fallback to email-derived name
+    // Use full_name if available, otherwise derive from email
     const name = user.full_name || user.email.split('@')[0].split('.').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ');
-    const initial = (user.full_name ? user.full_name[0] : user.email[0]).toUpperCase();
+    const initial = name[0].toUpperCase();
 
     return (
         <div className="profile-overlay" onClick={onClose}>
@@ -29,6 +29,12 @@ const ProfileModal = ({ user, onClose, onLogout }) => {
                         <span className="detail-label">Email</span>
                         <span className="detail-value">{user.email}</span>
                     </div>
+                    {user.faculty && (
+                        <div className="detail-item">
+                            <span className="detail-label">Faculty</span>
+                            <span className="detail-value">{user.faculty}</span>
+                        </div>
+                    )}
                     <div className="detail-item">
                         <span className="detail-label">Account ID</span>
                         <span className="detail-value">SC-2026-{Math.floor(1000 + Math.random() * 9000)}</span>

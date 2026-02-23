@@ -1,191 +1,152 @@
 import { useEffect, useState } from "react";
-import { filesAPI } from "../services/api";
+import { notesAPI } from "../services/api";
 import "./style/Bookshelf.css";
 
-
 const BookshelfModal = ({ onClose }) => {
-    const [files, setFiles] = useState([]);
+    const [ownNotes, setOwnNotes] = useState([]);
+    const [sharedNotes, setSharedNotes] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [tab, setTab] = useState("mine"); // "mine" | "shared"
 
-    // Load files from API
     useEffect(() => {
-        const loadFiles = async () => {
-            try {
-                const response = await filesAPI.getAll();
-                setFiles(response.data || []);
-            } catch (error) {
-                console.error("Error loading files:", error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        loadFiles();
+        loadBookshelf();
     }, []);
 
-    const handleUpload = async (e) => {
-        const uploadedFiles = Array.from(e.target.files);
-
-        for (const file of uploadedFiles) {
-            // Validate file size (max 5MB)
-            if (file.size > 5 * 1024 * 1024) {
-                alert(`File ${file.name} is too large. Maximum size is 5MB.`);
-                continue;
-            }
-
-            // Validate file type (allow images, pdf, doc/docx, txt)
-            const allowedTypes = [
-                'image/jpeg', 'image/png', 'image/gif',
-                'application/pdf',
-                'application/msword',
-                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-                'text/plain'
-            ];
-
-            if (!allowedTypes.includes(file.type)) {
-                alert(`File ${file.name} has an unsupported file type.`);
-                continue;
-            }
-
-            const reader = new FileReader();
-            reader.onloadend = async () => {
-                try {
-                    const response = await filesAPI.upload({
-                        name: file.name,
-                        file_type: file.type,
-                        file_url: reader.result, // Base64 encoded for now
-                        file_size: file.size
-                    });
-
-                    setFiles((prev) => [...prev, {
-                        file_id: response.data.file_id,
-                        name: response.data.name,
-                        file_type: response.data.file_type,
-                        file_url: response.data.file_url,
-                        created_at: response.data.created_at
-                    }]);
-                } catch (error) {
-                    console.error("Error uploading file:", error);
-                    alert("Failed to upload file. Please try again.");
-                }
-            };
-            reader.readAsDataURL(file);
-        }
-    };
-
-    // Helper to convert Base64 Data URL to Blob
-    const dataURLtoBlob = (dataurl) => {
-        if (!dataurl || !dataurl.includes(',')) return null;
+    const loadBookshelf = async () => {
         try {
-            const arr = dataurl.split(',');
-            const mime = arr[0].match(/:(.*?);/)[1];
-            const bstr = atob(arr[1]);
-            let n = bstr.length;
-            const u8arr = new Uint8Array(n);
-            while (n--) {
-                u8arr[n] = bstr.charCodeAt(n);
-            }
-            return new Blob([u8arr], { type: mime });
-        } catch (e) {
-            console.error("Error converting data URL to blob:", e);
-            return null;
+            const res = await notesAPI.getBookshelf();
+            const data = res.data || {};
+            setOwnNotes(data.own || []);
+            setSharedNotes(data.shared || []);
+        } catch (err) {
+            console.error("Error loading bookshelf:", err);
+        } finally {
+            setIsLoading(false);
         }
     };
 
-    const handleView = (file) => {
-        const blob = dataURLtoBlob(file.file_url);
-        if (!blob) {
-            alert("Could not open file. Invalid data.");
-            return;
-        }
-
-        const blobUrl = URL.createObjectURL(blob);
-
-        // Open in new tab
-        const newWindow = window.open(blobUrl, '_blank');
-
-        // Fallback if popup blocked
-        if (!newWindow) {
-            alert("Please allow popups to view files.");
-        }
-
-        // Clean up URL object after a delay
-        setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
-    };
-
-    const deleteFile = async (id) => {
+    const handleToggleShare = async (studentNoteId) => {
         try {
-            await filesAPI.delete(id);
-            setFiles((prev) => prev.filter((f) => f.file_id !== id));
-        } catch (error) {
-            console.error("Error deleting file:", error);
-            alert("Failed to delete file. Please try again.");
+            const res = await notesAPI.toggleShareStudentNote(studentNoteId);
+            setOwnNotes(prev =>
+                prev.map(n => n.id === studentNoteId ? { ...n, shared: res.data.shared } : n)
+            );
+        } catch (err) {
+            alert("Failed to toggle sharing");
         }
     };
+
+    const formatDate = (dateStr) => {
+        if (!dateStr) return "";
+        return new Date(dateStr).toLocaleDateString("en-US", {
+            year: "numeric", month: "short", day: "numeric"
+        });
+    };
+
+    const renderNoteCard = (note, isOwn) => (
+        <div key={note.id} className="file-card" style={{ flexDirection: "column", gap: "0.5rem" }}>
+            <div className="file-info" style={{ width: "100%" }}>
+                <span className="file-name" style={{ fontWeight: 600 }}>
+                    {note.notes?.title || "Untitled Note"}
+                </span>
+                <span className="file-date">{formatDate(note.created_at)}</span>
+            </div>
+
+            {note.private_comment && (
+                <p style={{
+                    margin: 0,
+                    fontSize: "0.85rem",
+                    color: "#374151",
+                    background: "#f9fafb",
+                    padding: "0.5rem 0.75rem",
+                    borderRadius: "6px",
+                    width: "100%",
+                    boxSizing: "border-box"
+                }}>
+                    {note.private_comment}
+                </p>
+            )}
+
+            {!isOwn && note.shared_by && (
+                <p style={{ margin: 0, fontSize: "0.8rem", color: "#6b7280" }}>
+                    Shared by: {note.shared_by}
+                </p>
+            )}
+
+            {isOwn && (
+                <button
+                    onClick={() => handleToggleShare(note.id)}
+                    style={{
+                        alignSelf: "flex-start",
+                        padding: "0.3rem 0.75rem",
+                        borderRadius: "6px",
+                        border: "none",
+                        fontSize: "0.8rem",
+                        cursor: "pointer",
+                        background: note.shared ? "#dcfce7" : "#f3f4f6",
+                        color: note.shared ? "#166534" : "#6b7280"
+                    }}
+                >
+                    {note.shared ? "Shared ✓" : "Share"}
+                </button>
+            )}
+        </div>
+    );
+
+    const displayNotes = tab === "mine" ? ownNotes : sharedNotes;
 
     return (
         <div className="bookshelf-overlay">
             <div className="bookshelf-modal">
-
                 <header>
                     <h2>📚 My Bookshelf</h2>
                     <button className="close-btn" onClick={onClose}>✕</button>
                 </header>
 
-                <label className="upload-btn">
-                    Upload Files
-                    <input
-                        type="file"
-                        multiple
-                        accept=".pdf,image/*,.txt"
-                        hidden
-                        onChange={handleUpload}
-                    />
-                </label>
+                <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1rem" }}>
+                    <button
+                        onClick={() => setTab("mine")}
+                        style={{
+                            padding: "0.4rem 1rem",
+                            borderRadius: "8px",
+                            border: "none",
+                            cursor: "pointer",
+                            fontWeight: 600,
+                            background: tab === "mine" ? "#2563eb" : "#f3f4f6",
+                            color: tab === "mine" ? "#fff" : "#374151"
+                        }}
+                    >
+                        My Comments ({ownNotes.length})
+                    </button>
+                    <button
+                        onClick={() => setTab("shared")}
+                        style={{
+                            padding: "0.4rem 1rem",
+                            borderRadius: "8px",
+                            border: "none",
+                            cursor: "pointer",
+                            fontWeight: 600,
+                            background: tab === "shared" ? "#2563eb" : "#f3f4f6",
+                            color: tab === "shared" ? "#fff" : "#374151"
+                        }}
+                    >
+                        Shared With Me ({sharedNotes.length})
+                    </button>
+                </div>
 
                 <div className="file-grid">
                     {isLoading ? (
-                        <p className="empty">Loading files...</p>
-                    ) : files.length === 0 ? (
-                        <p className="empty">No files yet. Upload to start reading 📖</p>
+                        <p className="empty">Loading bookshelf...</p>
+                    ) : displayNotes.length === 0 ? (
+                        <p className="empty">
+                            {tab === "mine"
+                                ? "No comments yet. Add comments on notes to see them here 📖"
+                                : "No shared comments from classmates yet."}
+                        </p>
                     ) : (
-                        files.map((file) => (
-                            <div key={file.file_id} className="file-card">
-                                <div
-                                    className="file-preview"
-                                    onClick={() => handleView(file)}
-                                    title="Click to view"
-                                    style={{ cursor: "pointer" }}
-                                >
-                                    {file.file_type?.startsWith('image/') ? (
-                                        <img
-                                            src={file.file_url}
-                                            alt={file.name}
-                                            className="file-thumb"
-                                            style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }}
-                                        />
-                                    ) : (
-                                        <span style={{ fontSize: '36px' }}>📄</span>
-                                    )}
-                                </div>
-
-                                <div className="file-info">
-                                    <span className="file-name">{file.name}</span>
-                                    <span className="file-date">
-                                        {file.created_at ? new Date(file.created_at).toLocaleDateString() : ''}
-                                    </span>
-                                </div>
-
-                                <button
-                                    className="delete-btn"
-                                    onClick={() => deleteFile(file.file_id)}
-                                >
-                                    🗑️
-                                </button>
-                            </div>
-                        ))
+                        displayNotes.map(note => renderNoteCard(note, tab === "mine"))
                     )}
                 </div>
-
             </div>
         </div>
     );

@@ -1,4 +1,4 @@
-const { getAuthClient } = require('../config/dbConfig');
+const { getAuthClient, supabaseAdmin } = require('../config/dbConfig');
 
 // Get all assignments for a subject
 const getAssignmentsBySubject = async (req, res) => {
@@ -17,11 +17,11 @@ const getAssignmentsBySubject = async (req, res) => {
     }
 };
 
-// Create a new assignment (Teacher only)
+// Create a new assignment (Teacher)
 const createAssignment = async (req, res) => {
     try {
         const supabase = getAuthClient(req.token);
-        const { subject_id, title, description, due_date } = req.body;
+        const { subject_id, title, description, due_date, max_marks } = req.body;
 
         // Check if Teacher owns the subject
         const { data: subject, error: subjectError } = await supabase
@@ -36,7 +36,7 @@ const createAssignment = async (req, res) => {
 
         const { data, error } = await supabase
             .from('assignments')
-            .insert([{ subject_id, title, description, due_date }])
+            .insert([{ subject_id, title, description, due_date, max_marks: max_marks || 100 }])
             .select();
 
         if (error) throw error;
@@ -46,14 +46,18 @@ const createAssignment = async (req, res) => {
     }
 };
 
-// Submit assignment (Student only)
+// Submit assignment (Student) – accepts file upload via multer
 const submitAssignment = async (req, res) => {
     try {
         const supabase = getAuthClient(req.token);
         const { assignmentId } = req.params;
-        const { file_url } = req.body;
+        const file = req.file;
 
-        // Verify deadline
+        if (!file) {
+            return res.status(400).json({ success: false, error: 'File is required' });
+        }
+
+        // Verify assignment exists and deadline hasn't passed
         const { data: assignment, error: assignmentError } = await supabase
             .from('assignments')
             .select('*')
@@ -68,6 +72,23 @@ const submitAssignment = async (req, res) => {
             return res.status(400).json({ success: false, error: 'Deadline has passed' });
         }
 
+        // Upload file to Supabase Storage "notes" bucket under submissions/
+        const filePath = `submissions/${assignmentId}/${req.user.id}_${Date.now()}_${file.originalname}`;
+        const { error: uploadError } = await supabaseAdmin.storage
+            .from('notes')
+            .upload(filePath, file.buffer, { contentType: file.mimetype });
+
+        if (uploadError) {
+            console.error('Storage upload error:', uploadError);
+            return res.status(500).json({ success: false, error: 'File upload failed' });
+        }
+
+        const { data: urlData } = supabaseAdmin.storage
+            .from('notes')
+            .getPublicUrl(filePath);
+
+        const file_url = urlData?.publicUrl || '';
+
         const { data, error } = await supabase
             .from('submissions')
             .insert([
@@ -78,11 +99,12 @@ const submitAssignment = async (req, res) => {
         if (error) throw error;
         res.status(201).json({ success: true, data: data[0] });
     } catch (error) {
+        console.error('submitAssignment error:', error);
         res.status(500).json({ success: false, error: 'Server error submitting assignment' });
     }
 };
 
-// Grade assignment (Teacher only) - marks out of 15
+// Grade assignment (Teacher) 
 const gradeSubmission = async (req, res) => {
     try {
         const supabase = getAuthClient(req.token);
@@ -93,8 +115,8 @@ const gradeSubmission = async (req, res) => {
             return res.status(400).json({ success: false, error: 'Marks are required' });
         }
 
-        if (typeof marks !== 'number' || marks < 0 || marks > 15) {
-            return res.status(400).json({ success: false, error: 'Marks must be a number between 0 and 15' });
+        if (typeof marks !== 'number' || marks < 0) {
+            return res.status(400).json({ success: false, error: 'Marks must be a non-negative number' });
         }
 
         const { data, error } = await supabase
@@ -166,7 +188,7 @@ const getAllAssignments = async (req, res) => {
     }
 };
 
-// Delete assignment (Teacher only)
+// Delete assignment (Teacher)
 const deleteAssignment = async (req, res) => {
     try {
         const supabase = getAuthClient(req.token);

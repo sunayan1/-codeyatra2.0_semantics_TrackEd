@@ -20,18 +20,18 @@ const authMiddleware = async (req, res, next) => {
             return res.status(401).json({ success: false, error: 'Invalid or expired token' });
         }
 
-        // Fetch user role from the custom users table if needed, or from user metadata
+        // Fetch user role + faculty from the custom users table
         const { data: dbUser, error: dbError } = await supabase
             .from('users')
-            .select('role')
+            .select('role, faculty')
             .eq('id', user.id)
             .single();
 
         if (dbError) {
             // If no custom profile is found, proceed. The role might be in app_metadata
-            req.user = { id: user.id, email: user.email, role: user.app_metadata?.role || 'student' };
+            req.user = { id: user.id, email: user.email, role: user.app_metadata?.role || 'student', faculty: null };
         } else {
-            req.user = { id: user.id, email: user.email, role: dbUser.role };
+            req.user = { id: user.id, email: user.email, role: dbUser.role, faculty: dbUser.faculty || null };
         }
 
         next();

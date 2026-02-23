@@ -19,7 +19,7 @@
 .login-title {
     font-size: 2rem;
     font-weight: 700;
-    color: #7c3aed;
+    color: #2563eb;
     margin-bottom: 0.25rem;
 }
 
@@ -47,7 +47,7 @@
 }
 
 .login-form input:focus {
-    border-color: #7c3aed;
+    border-color: #2563eb;
 }
 
 /* RIGHT panel */
@@ -57,7 +57,7 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+    background: linear-gradient(135deg, #60a5fa, #2563eb);
     color: #fff;
     text-align: center;
     padding: 3rem;
@@ -80,7 +80,7 @@
     padding: 0.85rem;
     border-radius: 50px;
     border: none;
-    background: #7c3aed;
+    background: #2563eb;
     color: #fff;
     font-size: 1rem;
     font-weight: 600;
@@ -89,7 +89,7 @@
 }
 
 .btn-primary:hover {
-    background: #6d28d9;
+    background: #1d4ed8;
 }
 
 .btn-outline {

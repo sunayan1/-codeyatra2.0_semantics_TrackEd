@@ -4,10 +4,11 @@ import { subjectsAPI } from "../../services/api";
 const SubjectsPage = () => {
     const [subjects, setSubjects] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [form, setForm] = useState({ title: "", description: "" });
+    const [form, setForm] = useState({ title: "", description: "", faculty: "", semester: "" });
 
     // Enrollment state
-    const [enrollForm, setEnrollForm] = useState({ subject_id: "", student_email: "" });
+    const [enrollSubjectId, setEnrollSubjectId] = useState("");
+    const [enrollLoading, setEnrollLoading] = useState(false);
     const [enrolledStudents, setEnrolledStudents] = useState({});
     const [expandedSubject, setExpandedSubject] = useState(null);
 
@@ -18,7 +19,7 @@ const SubjectsPage = () => {
     const loadSubjects = async () => {
         try {
             const res = await subjectsAPI.getAll();
-            setSubjects(res.data || []);
+            setSubjects(res.data?.data || res.data || []);
         } catch (err) {
             console.error("Failed to load subjects:", err);
         } finally {
@@ -27,39 +28,47 @@ const SubjectsPage = () => {
     };
 
     const handleCreate = async () => {
-        if (!form.title || !form.description)
-            return alert("Fill in both title and description");
+        if (!form.title)
+            return alert("Subject title is required");
         try {
-            const res = await subjectsAPI.create(form);
-            if (res.data) {
-                setSubjects((prev) => [res.data, ...prev]);
-                setForm({ title: "", description: "" });
+            const payload = { title: form.title };
+            if (form.description) payload.description = form.description;
+            if (form.faculty) payload.faculty = form.faculty;
+            if (form.semester) payload.semester = parseInt(form.semester, 10);
+            const res = await subjectsAPI.create(payload);
+            const created = res.data?.data || res.data;
+            if (created) {
+                setSubjects((prev) => [created, ...prev]);
+                setForm({ title: "", description: "", faculty: "", semester: "" });
             }
         } catch (err) {
             alert("Failed to create subject: " + err.message);
         }
     };
 
-    const handleEnroll = async () => {
-        if (!enrollForm.subject_id || !enrollForm.student_email)
-            return alert("Select a subject and enter a student email");
+    const handleEnrollAll = async () => {
+        if (!enrollSubjectId) return alert("Select a subject");
+        const sub = subjects.find(s => s.id === enrollSubjectId);
+        const label = sub ? `${sub.title}${sub.faculty ? ` (${sub.faculty})` : ''}` : enrollSubjectId;
+        if (!window.confirm(`Enroll all students from faculty "${sub?.faculty || 'all'}" semester ${sub?.semester || 'all'} into ${label}?`)) return;
+        setEnrollLoading(true);
         try {
-            await subjectsAPI.enrollStudent(enrollForm);
-            setEnrollForm({ ...enrollForm, student_email: "" });
-            // Refresh the student list if this subject is expanded
-            if (expandedSubject === enrollForm.subject_id) {
-                loadStudents(enrollForm.subject_id);
-            }
-            alert("Student enrolled successfully!");
+            const res = await subjectsAPI.enrollAllBySubject({ subject_id: enrollSubjectId });
+            const info = res.data?.data || res.data || {};
+            alert(`Enrolled ${info.enrolled || 0} students into ${info.subject || label}\n(${info.studentsMatched || 0} students matched)`);
+            // Refresh student list if expanded
+            setEnrolledStudents({});
+            if (expandedSubject === enrollSubjectId) loadStudents(enrollSubjectId);
         } catch (err) {
-            alert("Failed to enroll student: " + err.message);
+            alert("Enrollment failed: " + err.message);
         }
+        setEnrollLoading(false);
     };
 
     const loadStudents = async (subjectId) => {
         try {
             const res = await subjectsAPI.getStudents(subjectId);
-            setEnrolledStudents((prev) => ({ ...prev, [subjectId]: res.data || [] }));
+            setEnrolledStudents((prev) => ({ ...prev, [subjectId]: res.data?.data || res.data || [] }));
         } catch (err) {
             console.error("Failed to load students:", err);
         }
@@ -96,7 +105,7 @@ const SubjectsPage = () => {
                 <h3>Create Subject</h3>
                 <div className="form-row">
                     <input
-                        placeholder="Subject Title"
+                        placeholder="Subject Title *"
                         value={form.title}
                         onChange={(e) => setForm({ ...form, title: e.target.value })}
                     />
@@ -106,31 +115,62 @@ const SubjectsPage = () => {
                         onChange={(e) => setForm({ ...form, description: e.target.value })}
                     />
                 </div>
+                <div className="form-row" style={{ marginTop: "0.5rem" }}>
+                    <input
+                        placeholder="Faculty / Department"
+                        value={form.faculty}
+                        onChange={(e) => setForm({ ...form, faculty: e.target.value })}
+                    />
+                    <select
+                        value={form.semester}
+                        onChange={(e) => setForm({ ...form, semester: e.target.value })}
+                        style={{ padding: "0.75rem", borderRadius: "8px", border: "1px solid #e5e7eb", fontSize: "0.95rem" }}
+                    >
+                        <option value="">Semester</option>
+                        {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
+                            <option key={n} value={n}>Semester {n}</option>
+                        ))}
+                    </select>
+                </div>
                 <button className="save-btn" onClick={handleCreate}>Create Subject</button>
             </div>
 
-            {/* Enroll Student */}
+            {/* Enroll Students */}
             <div className="form-card" style={{ marginTop: "1.5rem" }}>
-                <h3>Enroll Student</h3>
+                <h3>Enroll Students</h3>
+                <p className="note-meta" style={{ marginBottom: "0.75rem" }}>
+                    Select a subject to enroll all students matching its faculty and semester.
+                </p>
                 <div className="form-row">
                     <select
-                        value={enrollForm.subject_id}
-                        onChange={(e) => setEnrollForm({ ...enrollForm, subject_id: e.target.value })}
-                        style={{ padding: "0.75rem", borderRadius: "8px", border: "1px solid #e5e7eb", fontSize: "0.95rem" }}
+                        value={enrollSubjectId}
+                        onChange={(e) => setEnrollSubjectId(e.target.value)}
+                        style={{ padding: "0.75rem", borderRadius: "8px", border: "1px solid #e5e7eb", fontSize: "0.95rem", flex: 1 }}
                     >
                         <option value="">Select Subject</option>
                         {subjects.map((s) => (
-                            <option key={s.id} value={s.id}>{s.title}</option>
+                            <option key={s.id} value={s.id}>
+                                {s.title}{s.faculty ? ` — ${s.faculty}` : ''}{s.semester ? ` (Sem ${s.semester})` : ''}
+                            </option>
                         ))}
                     </select>
-                    <input
-                        type="email"
-                        placeholder="Student Email"
-                        value={enrollForm.student_email}
-                        onChange={(e) => setEnrollForm({ ...enrollForm, student_email: e.target.value })}
-                    />
+                    <button
+                        className="save-btn"
+                        onClick={handleEnrollAll}
+                        disabled={enrollLoading || !enrollSubjectId}
+                        style={{ margin: 0 }}
+                    >
+                        {enrollLoading ? "Enrolling..." : "Enroll All Students"}
+                    </button>
                 </div>
-                <button className="save-btn" onClick={handleEnroll}>Enroll Student</button>
+                {enrollSubjectId && (() => {
+                    const sub = subjects.find(s => s.id === enrollSubjectId);
+                    return sub ? (
+                        <p className="note-meta" style={{ marginTop: "0.5rem" }}>
+                            Will enroll all students{sub.faculty ? ` from "${sub.faculty}"` : ''}{sub.semester ? ` (Sem ${sub.semester})` : ''} into <strong>{sub.title}</strong>
+                        </p>
+                    ) : null;
+                })()}
             </div>
 
             {/* Subject List */}
@@ -146,6 +186,10 @@ const SubjectsPage = () => {
                                 <div>
                                     <p className="note-title">{s.title}</p>
                                     {s.description && <p className="note-meta">{s.description}</p>}
+                                    <p className="note-meta" style={{ fontSize: "0.8rem", marginTop: "0.25rem" }}>
+                                        {s.faculty && <span style={{ marginRight: "1rem" }}>Faculty: {s.faculty}</span>}
+                                        {s.semester && <span>Semester {s.semester}</span>}
+                                    </p>
                                 </div>
                                 <button
                                     className="badge badge-purple"

@@ -8,44 +8,27 @@ const Login = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [role, setRole] = useState("student");
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState("");
     const { login } = useAuth();
     const navigate = useNavigate();
 
     const handleLogin = async (e) => {
         e.preventDefault();
-        if (!email || !password) return setError("Please fill all fields.");
-
-        setIsLoading(true);
-        setError("");
+        if (!email || !password) return alert("Please fill all fields");
 
         try {
-            const res = await authAPI.login({ email, password });
-
-            if (res.success && res.data) {
-                const { token, user: profile } = res.data;
-                const userRole = profile?.role || role;
-
-                login(
-                    {
-                        id: profile?.id,
-                        email: profile?.email || email,
-                        full_name: profile?.full_name || "",
-                        role: userRole,
-                    },
-                    token
-                );
-
+            const res = await authAPI.login({ email, password, role });
+            if (res.data && res.data.success) {
+                const user = res.data.data?.user;
+                const token = res.data.data?.token;
+                const userRole = user?.role || role;
+                login({ email: user?.email || email, role: userRole, id: user?.id, full_name: user?.full_name, faculty: user?.faculty }, token);
                 navigate(userRole === "student" ? "/student" : "/teacher");
             } else {
-                setError("Invalid credentials. Please try again.");
+                alert(res.data?.error || "Invalid credentials. Please try again.");
             }
-        } catch (err) {
-            console.error("Login error:", err);
-            setError(err.message || "A server error occurred. Please try again later.");
-        } finally {
-            setIsLoading(false);
+        } catch (error) {
+            console.error("Login error:", error);
+            alert(error.message || "A server error occurred. Please try again later.");
         }
     };
 
@@ -64,8 +47,6 @@ const Login = () => {
                 <h2 className="login-title">Sign In</h2>
                 <p className="login-sub">as a <strong>{role === "student" ? "Student" : "Teacher"}</strong></p>
 
-                {error && <p className="login-error" style={{ color: '#ef4444', marginBottom: '1rem', fontSize: '0.9rem' }}>{error}</p>}
-
                 <form onSubmit={handleLogin} className="login-form">
                     <input
                         type="email"
@@ -79,9 +60,7 @@ const Login = () => {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                     />
-                    <button type="submit" className="btn-primary" disabled={isLoading}>
-                        {isLoading ? "Signing in…" : "Sign In"}
-                    </button>
+                    <button type="submit" className="btn-primary">Sign In</button>
                 </form>
             </div>
 

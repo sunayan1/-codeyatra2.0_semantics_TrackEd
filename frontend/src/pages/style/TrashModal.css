@@ -1,7 +1,7 @@
 .trash-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.6);
+  background: rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(10px);
   display: flex;
   justify-content: center;
@@ -13,7 +13,7 @@
   width: 480px;
   max-height: 80vh;
   overflow-y: auto;
-  background: #f5f3ff;
+  background: #eff6ff;
   border-radius: 28px;
   padding: 24px;
 }
@@ -52,6 +52,6 @@
   padding: 12px;
   border-radius: 999px;
   border: none;
-  background: #7c3aed;
+  background: #2563eb;
   color: white;
 }

@@ -2,19 +2,21 @@ const { supabase, supabaseAdmin, getAuthClient } = require('../config/dbConfig')
 
 const register = async (req, res) => {
     try {
-        const { email, password, full_name, role } = req.body;
+        const { email, password, full_name, role, faculty, semester, default_passcode } = req.body;
 
-        if (!email || !password || !full_name || !role) {
-            return res.status(400).json({ success: false, error: 'Email, password, full_name, and role are required' });
+        if (!email || !full_name || !role) {
+            return res.status(400).json({ success: false, error: 'Email, full_name, and role are required' });
         }
 
         if (!['teacher', 'student'].includes(role)) {
             return res.status(400).json({ success: false, error: 'Role must be either teacher or student' });
         }
 
+        const userPassword = password || default_passcode || 'TrackEd@123';
+
         const { data: authData, error: authError } = await supabase.auth.signUp({
             email,
-            password
+            password: userPassword
         });
 
         if (authError) {
@@ -25,9 +27,19 @@ const register = async (req, res) => {
             return res.status(400).json({ success: false, error: 'Registration failed' });
         }
 
+        const profileData = {
+            id: authData.user.id,
+            email,
+            full_name,
+            role,
+            faculty: faculty || null,
+            semester: semester || null,
+            default_passcode: default_passcode || userPassword
+        };
+
         const { error: profileError } = await supabaseAdmin
             .from('users')
-            .insert([{ id: authData.user.id, email, full_name, role }]);
+            .insert([profileData]);
 
         if (profileError) {
             return res.status(500).json({ success: false, error: 'User created but profile setup failed: ' + profileError.message });
@@ -37,10 +49,64 @@ const register = async (req, res) => {
 
         res.status(201).json({
             success: true,
-            data: { id: authData.user.id, email, full_name, role, token }
+            data: { id: authData.user.id, email, full_name, role, faculty: faculty || null, semester: semester || null, token }
         });
     } catch (error) {
         res.status(500).json({ success: false, error: 'Server error during registration' });
+    }
+};
+
+// Bulk upload users (college admin)
+const bulkRegister = async (req, res) => {
+    try {
+        const { users } = req.body;
+
+        if (!Array.isArray(users) || users.length === 0) {
+            return res.status(400).json({ success: false, error: 'users array is required' });
+        }
+
+        const results = [];
+        const errors = [];
+
+        for (const u of users) {
+            try {
+                const pw = u.default_passcode || u.password || 'TrackEd@123';
+                const { data: authData, error: authError } = await supabase.auth.signUp({
+                    email: u.email,
+                    password: pw
+                });
+
+                if (authError) {
+                    errors.push({ email: u.email, error: authError.message });
+                    continue;
+                }
+
+                if (!authData.user) {
+                    errors.push({ email: u.email, error: 'Registration failed' });
+                    continue;
+                }
+
+                await supabaseAdmin
+                    .from('users')
+                    .insert([{
+                        id: authData.user.id,
+                        email: u.email,
+                        full_name: u.full_name,
+                        role: u.role,
+                        faculty: u.faculty || null,
+                        semester: u.semester || null,
+                        default_passcode: pw
+                    }]);
+
+                results.push({ email: u.email, id: authData.user.id, success: true });
+            } catch (err) {
+                errors.push({ email: u.email, error: err.message });
+            }
+        }
+
+        res.status(201).json({ success: true, data: { created: results, errors } });
+    } catch (error) {
+        res.status(500).json({ success: false, error: 'Server error during bulk registration' });
     }
 };
 
@@ -60,7 +126,7 @@ const login = async (req, res) => {
 
         const { data: profile } = await supabase
             .from('users')
-            .select('id, full_name, email, role')
+            .select('id, full_name, email, role, faculty, semester')
             .eq('id', data.user.id)
             .single();
 
@@ -81,7 +147,7 @@ const getProfile = async (req, res) => {
         const supabase = getAuthClient(req.token);
         const { data, error } = await supabase
             .from('users')
-            .select('id, full_name, email, role')
+            .select('id, full_name, email, role, faculty, semester')
             .eq('id', req.user.id)
             .single();
 
@@ -95,4 +161,4 @@ const getProfile = async (req, res) => {
     }
 };
 
-module.exports = { register, login, getProfile };
+module.exports = { register, bulkRegister, login, getProfile };

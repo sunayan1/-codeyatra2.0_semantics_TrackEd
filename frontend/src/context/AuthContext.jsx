@@ -1,55 +1,30 @@
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState } from "react";
 
 const AuthContext = createContext();
 
-const STORAGE_KEY_USER = "tracked_user";
-const STORAGE_KEY_TOKEN = "tracked_token";
-
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY_USER);
-      return stored ? JSON.parse(stored) : null;
-    } catch {
-      return null;
-    }
+    const saved = localStorage.getItem('tracked_user');
+    return saved ? JSON.parse(saved) : null;
   });
 
-  const [token, setToken] = useState(() => {
-    return localStorage.getItem(STORAGE_KEY_TOKEN) || null;
-  });
-
-  // Persist user whenever it changes
-  useEffect(() => {
-    if (user) {
-      localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(user));
-    } else {
-      localStorage.removeItem(STORAGE_KEY_USER);
+  const login = (userData, token) => {
+    const u = typeof userData === 'string' ? { email: userData, role: token } : userData;
+    setUser(u);
+    localStorage.setItem('tracked_user', JSON.stringify(u));
+    if (typeof token === 'string' && token.length > 20) {
+      localStorage.setItem('tracked_token', token);
     }
-  }, [user]);
-
-  useEffect(() => {
-    if (token) {
-      localStorage.setItem(STORAGE_KEY_TOKEN, token);
-    } else {
-      localStorage.removeItem(STORAGE_KEY_TOKEN);
-    }
-  }, [token]);
-
-  const login = (userData, accessToken) => {
-    setUser(userData);
-    setToken(accessToken);
   };
 
   const logout = () => {
     setUser(null);
-    setToken(null);
-    localStorage.removeItem(STORAGE_KEY_USER);
-    localStorage.removeItem(STORAGE_KEY_TOKEN);
+    localStorage.removeItem('tracked_user');
+    localStorage.removeItem('tracked_token');
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout }}>
+    <AuthContext.Provider value={{ user, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

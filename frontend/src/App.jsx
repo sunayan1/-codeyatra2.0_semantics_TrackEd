@@ -5,6 +5,8 @@ import StudentDashboard from "./pages/StudentDashboard";
 import SubjectsPage from "./pages/student/SubjectsPage";
 import StudentNotesPage from "./pages/student/NotesPage";
 import StudentAssignmentsPage from "./pages/student/AssignmentsPage";
+import SubjectRoadmapPage from "./pages/student/SubjectRoadmapPage";
+import LevelContentPage from "./pages/student/LevelContentPage";
 import TeacherDashboard from "./pages/TeacherDashboard";
 import StudyRoom from "./pages/StudyRoom";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -48,6 +50,24 @@ function App() {
             element={
               <ProtectedRoute allowedRole="student">
                 <StudentAssignmentsPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/student/subject/:subjectId"
+            element={
+              <ProtectedRoute allowedRole="student">
+                <SubjectRoadmapPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/student/subject/:subjectId/level/:levelId"
+            element={
+              <ProtectedRoute allowedRole="student">
+                <LevelContentPage />
               </ProtectedRoute>
             }
           />

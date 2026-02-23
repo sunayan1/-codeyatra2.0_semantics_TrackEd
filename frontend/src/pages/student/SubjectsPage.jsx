@@ -8,16 +8,15 @@ import "../Dashboard.css";
 
 const SubjectsPage = () => {
     const { user, logout } = useAuth();
+    const [showProfile, setShowProfile] = useState(false);
     const [subjects, setSubjects] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [showProfile, setShowProfile] = useState(false);
 
     useEffect(() => {
         loadSubjects();
     }, []);
 
     const loadSubjects = async () => {
-        setIsLoading(true);
         try {
             const res = await subjectsAPI.getAll();
             setSubjects(res.data || []);
@@ -44,16 +43,19 @@ const SubjectsPage = () => {
                     ) : subjects.length === 0 ? (
                         <p className="empty">You are not enrolled in any subjects yet.</p>
                     ) : (
-                        <ul className="subject-list">
+                        <ul className="subject-list" style={{ listStyle: 'none', padding: 0 }}>
                             {subjects.map((s) => (
-                                <li key={s.id} className="note-card" style={{ padding: '1.5rem' }}>
-                                    <div>
-                                        <span style={{ fontWeight: 600 }}>{s.title}</span>
-                                        {s.description && (
-                                            <p style={{ color: '#6b7280', marginTop: '0.25rem', fontSize: '0.9rem' }}>
-                                                {s.description}
+                                <li key={s.id} className="note-card" style={{ padding: '1.5rem', marginBottom: '0.75rem' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                        <div>
+                                            <span style={{ fontWeight: 600, fontSize: '1.05rem' }}>{s.title}</span>
+                                            {s.description && <p className="note-meta" style={{ margin: '0.25rem 0' }}>{s.description}</p>}
+                                            <p className="note-meta" style={{ fontSize: '0.8rem', marginTop: '0.25rem' }}>
+                                                {s.faculty && <span style={{ marginRight: '1rem' }}>Faculty: {s.faculty}</span>}
+                                                {s.semester && <span style={{ marginRight: '1rem' }}>Semester {s.semester}</span>}
+                                                {s.teacher_name && <span>Teacher: {s.teacher_name}</span>}
                                             </p>
-                                        )}
+                                        </div>
                                     </div>
                                 </li>
                             ))}
