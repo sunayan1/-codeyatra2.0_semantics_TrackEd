@@ -1,19 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { attendanceAPI, submissionsAPI, assignmentsAPI, subjectsAPI } from "../services/api";
+
 import StudentSidebar from "../components/student/StudentSidebar";
 import StudentHeader from "../components/student/StudentHeader";
 import ProfileModal from "../components/ProfileModal";
 import SubjectSelectionModal from "../components/student/SubjectSelectionModal";
 import ProgressTracker from "../components/student/ProgressTracker";
 import "./Dashboard.css";
-
-const stats = [
-    { icon: "", label: "Attendance", value: "92%", color: "#2563eb" },
-    { icon: "", label: "Tasks Due", value: "3", color: "#2563eb" },
-    { icon: "", label: "GPA", value: "3.8", color: "#059669" },
-    { icon: "", label: "Rank", value: "#4", color: "#d97706" },
-];
 
 const featureBoxes = [
     { key: "subjects", icon: "", label: "Learning Path", path: "/student/subjects", color: "#2563eb", desc: "Interactive roadmaps & levels" },
@@ -23,10 +18,61 @@ const featureBoxes = [
 ];
 
 const StudentDashboard = () => {
+
     const { user, logout } = useAuth();
     const navigate = useNavigate();
     const [showProfile, setShowProfile] = useState(false);
     const [showSubjectSelection, setShowSubjectSelection] = useState(false);
+
+    const [stats, setStats] = useState([
+        { label: "Attendance", value: "0%", color: "#2563eb" },
+        { label: "Assignments", value: "0/0", color: "#2563eb" },
+        { label: "Subjects", value: "0", color: "#059669" },
+        { label: "Status", value: "Good", color: "#d97706" },
+    ]);
+
+    useEffect(() => {
+        const loadStats = async () => {
+            try {
+                const [attRes, subRes, asgnRes, subjRes] = await Promise.all([
+                    attendanceAPI.getMy(),
+                    submissionsAPI.getMySubmissions(),
+                    assignmentsAPI.getAll(),
+                    subjectsAPI.getMine()
+                ]);
+
+                const extract = (res) => {
+                    if (res?.data?.data && Array.isArray(res.data.data)) return res.data.data;
+                    if (res?.data && Array.isArray(res.data)) return res.data;
+                    return [];
+                };
+
+                const attData = extract(attRes);
+                const subData = extract(subRes);
+                const asgnData = extract(asgnRes);
+                const subjData = extract(subjRes);
+
+                const totalDays = attData.length;
+                const presentDays = attData.filter(d => d.status === 'present' || d.status === 'late').length;
+                const attendance = totalDays > 0 ? Math.round((presentDays / totalDays) * 100) : 100;
+
+                // Unique assignments submitted
+                const submittedAsgnIds = new Set(subData.map(s => s.assignment_id));
+                const completedCount = submittedAsgnIds.size;
+
+                setStats([
+                    { label: "Attendance", value: `${attendance}%`, color: "#2563eb" },
+                    { label: "Assignments", value: `${completedCount} / ${asgnData.length}`, color: "#2563eb" },
+                    { label: "Subjects", value: subjData.length.toString(), color: "#059669" },
+                    { label: "Status", value: attendance < 75 ? "At Risk" : "Good", color: "#d97706" },
+                ]);
+            } catch (e) {
+                console.error("Error loading dashboard stats:", e);
+            }
+        };
+        if (user) loadStats();
+    }, [user]);
+
 
     const handleBoxClick = (box) => {
         if (box.key === "subjects") {

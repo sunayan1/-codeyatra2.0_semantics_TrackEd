@@ -1,37 +1,80 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AttendancePage from "./teacher/AttendancePage";
 import NotesPage from "./teacher/NotesPage";
 import AssignmentsPage from "./teacher/AssignmentsPage";
 import StudentRecordsPage from "./teacher/StudentRecordsPage";
+import SubjectsManagementPage from "./teacher/SubjectsManagementPage";
+import { subjectsAPI, assignmentsAPI } from "../services/api";
 import { useAuth } from "../context/AuthContext";
+
 import ProfileModal from "../components/ProfileModal";
 import "./Dashboard.css";
 
 const navItems = [
   { key: "home", icon: "", label: "Dashboard" },
+  { key: "subjects", icon: "", label: "Subjects" },
   { key: "attendance", icon: "", label: "Attendance" },
   { key: "notes", icon: "", label: "Notes" },
   { key: "assignments", icon: "", label: "Assignments" },
   { key: "records", icon: "", label: "Student Records" },
 ];
 
-const stats = [
-  { icon: "", label: "Students", value: "132", color: "#2563eb" },
-  { icon: "", label: "Assignments Set", value: "18", color: "#2563eb" },
-  { icon: "", label: "Classes Today", value: "4", color: "#059669" },
-  { icon: "", label: "Low Attendance", value: "7", color: "#dc2626" },
-];
 
 const TeacherDashboard = () => {
   const { user, logout } = useAuth();
   const [page, setPage] = useState("home");
   const [showProfile, setShowProfile] = useState(false);
 
+  const [stats, setStats] = useState([
+    { label: "Total Students", value: "0", color: "#2563eb" },
+    { label: "Assignments Set", value: "0", color: "#2563eb" },
+    { label: "Enrolled Subjects", value: "0", color: "#059669" },
+    { label: "Waitlist/Low Att.", value: "0", color: "#dc2626" },
+  ]);
+
+  useEffect(() => {
+    const loadStats = async () => {
+      try {
+        const [progRes, asgnRes, subjRes] = await Promise.all([
+          subjectsAPI.getProgress(),
+          assignmentsAPI.getAll(),
+          subjectsAPI.getMine()
+        ]);
+
+        const extract = (res) => {
+          if (res?.data?.data && Array.isArray(res.data.data)) return res.data.data;
+          if (res?.data && Array.isArray(res.data)) return res.data;
+          return [];
+        };
+
+        const students = extract(progRes);
+        const assignments = extract(asgnRes);
+        const subjects = extract(subjRes);
+
+
+        const lowAtt = students.filter(s => s.attendance < 75).length;
+
+        setStats([
+          { label: "Total Students", value: students.length.toString(), color: "#2563eb" },
+          { label: "Assignments Set", value: assignments.length.toString(), color: "#2563eb" },
+          { label: "Enrolled Subjects", value: subjects.length.toString(), color: "#059669" },
+          { label: "Low Attendance", value: lowAtt.toString(), color: "#dc2626" },
+        ]);
+      } catch (e) {
+        console.error("Error loading teacher stats:", e);
+      }
+    };
+    if (user) loadStats();
+  }, [user]);
+
+
   const renderPage = () => {
+    if (page === "subjects") return <SubjectsManagementPage />;
     if (page === "attendance") return <AttendancePage />;
     if (page === "notes") return <NotesPage />;
     if (page === "assignments") return <AssignmentsPage />;
     if (page === "records") return <StudentRecordsPage />;
+
     return (
       <>
         <section className="stats-grid">

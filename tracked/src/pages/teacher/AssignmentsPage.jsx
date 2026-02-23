@@ -76,7 +76,7 @@ const AssignmentsPage = () => {
                                 <p className="note-meta">{a.subject} · Due: {a.deadline}</p>
                             </div>
                             <div className="asgn-actions">
-                                <button className="badge badge-purple" onClick={() => setShowSubmissions(showSubmissions === a.id ? null : a.id)}>
+                                <button className="badge badge-blue" onClick={() => setShowSubmissions(showSubmissions === a.id ? null : a.id)}>
                                     View Submissions ({submissions.filter(s => s.assignmentId === a.id).length})
                                 </button>
                                 <button className="del-btn" onClick={() => handleDelete(a.id)}>Delete</button>

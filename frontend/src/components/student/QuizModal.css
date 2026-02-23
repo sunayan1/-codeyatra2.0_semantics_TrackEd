@@ -1,0 +1,83 @@
+/* QuizModal.css - Styles for the QuizModal component */
+
+.quiz-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.quiz-modal {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.15);
+  padding: 2rem;
+  width: 90vw;
+  max-width: 420px;
+  position: relative;
+}
+
+.quiz-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.quiz-title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.quiz-subtitle {
+  margin: 0;
+  font-size: 1rem;
+  color: #666;
+}
+
+.quiz-close-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #888;
+  transition: color 0.2s;
+}
+.quiz-close-btn:hover {
+  color: #e74c3c;
+}
+
+.score-banner {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: #f5f5f5;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  font-size: 1.1rem;
+}
+.score-banner.excellent {
+  background: #e0ffe0;
+  color: #27ae60;
+}
+.score-banner.good {
+  background: #fffbe0;
+  color: #f39c12;
+}
+.score-banner.needs-work {
+  background: #ffe0e0;
+  color: #e74c3c;
+}
+.score-emoji {
+  font-size: 2rem;
+}
+
+/* Add more styles as needed for quiz questions, options, buttons, etc. */
