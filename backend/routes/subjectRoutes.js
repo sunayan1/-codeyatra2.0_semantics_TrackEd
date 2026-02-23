@@ -1,11 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const { authMiddleware, requireRole } = require('../middlewares/authMiddleware');
-const { getSubjects, createSubject, enrollStudent, getEnrolledStudents, unenrollStudent, enrollAllBySubject } = require('../controllers/subjectController');
+const { getSubjects, createSubject, enrollStudent, getEnrolledStudents, unenrollStudent, enrollAllBySubject, getDashboardStats } = require('../controllers/subjectController');
 
 router.use(authMiddleware);
 
 router.get('/', getSubjects);
+router.get('/dashboard-stats', requireRole('teacher'), getDashboardStats);
 router.post('/', requireRole('teacher'), createSubject);
 
 // Enrollment management (Teacher only)

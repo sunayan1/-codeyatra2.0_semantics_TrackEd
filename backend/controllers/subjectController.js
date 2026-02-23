@@ -1,4 +1,4 @@
-const { getAuthClient } = require('../config/dbConfig');
+const { getAuthClient, supabaseAdmin } = require('../config/dbConfig');
 
 // Get all subjects (For teacher: their subjects. For student: enrolled subjects)
 const getSubjects = async (req, res) => {
@@ -140,7 +140,7 @@ const getEnrolledStudents = async (req, res) => {
             return res.status(403).json({ success: false, error: 'Subject not found or you do not own it' });
         }
 
-        const { data, error } = await supabase
+        const { data, error } = await supabaseAdmin
             .from('enrollments')
             .select(`
                 id,
@@ -199,7 +199,8 @@ const enrollAllBySubject = async (req, res) => {
         }
 
         // Find all students matching the subject's faculty and semester
-        let studentsQuery = supabase
+        // Use admin client to bypass RLS – teachers can't read the users table directly
+        let studentsQuery = supabaseAdmin
             .from('users')
             .select('id, email, full_name')
             .eq('role', 'student');
@@ -220,8 +221,8 @@ const enrollAllBySubject = async (req, res) => {
         // Build enrollment rows
         const rows = students.map(st => ({ student_id: st.id, subject_id: subject.id }));
 
-        // Upsert to skip duplicates
-        const { data, error } = await supabase
+        // Upsert to skip duplicates (use admin to bypass RLS)
+        const { data, error } = await supabaseAdmin
             .from('enrollments')
             .upsert(rows, { onConflict: 'student_id,subject_id', ignoreDuplicates: true })
             .select();
@@ -242,4 +243,64 @@ const enrollAllBySubject = async (req, res) => {
     }
 };
 
-module.exports = { getSubjects, createSubject, enrollStudent, getEnrolledStudents, unenrollStudent, enrollAllBySubject };
+// Get teacher dashboard stats (dynamic counts)
+const getDashboardStats = async (req, res) => {
+    try {
+        const teacherId = req.user.id;
+
+        // Get teacher's subjects
+        const { data: subjects } = await supabaseAdmin
+            .from('subjects')
+            .select('id')
+            .eq('teacher_id', teacherId);
+        const subjectIds = (subjects || []).map(s => s.id);
+
+        if (subjectIds.length === 0) {
+            return res.json({ success: true, data: { students: 0, assignments: 0, subjects: 0, lowAttendance: 0 } });
+        }
+
+        // Count unique enrolled students across all subjects
+        const { data: enrollments } = await supabaseAdmin
+            .from('enrollments')
+            .select('student_id')
+            .in('subject_id', subjectIds);
+        const uniqueStudents = new Set((enrollments || []).map(e => e.student_id));
+
+        // Count total assignments
+        const { data: assignments } = await supabaseAdmin
+            .from('assignments')
+            .select('id')
+            .in('subject_id', subjectIds);
+
+        // Count students with low attendance (<75%) across any subject
+        const { data: attendance } = await supabaseAdmin
+            .from('attendance')
+            .select('student_id, status')
+            .in('subject_id', subjectIds);
+
+        const attByStudent = {};
+        (attendance || []).forEach(a => {
+            if (!attByStudent[a.student_id]) attByStudent[a.student_id] = { total: 0, present: 0 };
+            attByStudent[a.student_id].total++;
+            if (a.status === 'present') attByStudent[a.student_id].present++;
+        });
+        const lowAttendance = Object.values(attByStudent).filter(
+            s => s.total > 0 && Math.round((s.present / s.total) * 100) < 75
+        ).length;
+
+        res.json({
+            success: true,
+            data: {
+                students: uniqueStudents.size,
+                assignments: (assignments || []).length,
+                subjects: subjectIds.length,
+                lowAttendance
+            }
+        });
+    } catch (error) {
+        console.error('getDashboardStats error:', error);
+        res.status(500).json({ success: false, error: 'Server error fetching stats' });
+    }
+};
+
+module.exports = { getSubjects, createSubject, enrollStudent, getEnrolledStudents, unenrollStudent, enrollAllBySubject, getDashboardStats };

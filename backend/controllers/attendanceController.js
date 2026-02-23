@@ -157,8 +157,8 @@ const getStudentPerformance = async (req, res) => {
             return res.status(403).json({ success: false, error: 'Forbidden' });
         }
 
-        // Get enrolled students
-        const { data: enrollments } = await supabase
+        // Get enrolled students (use admin to bypass RLS)
+        const { data: enrollments } = await supabaseAdmin
             .from('enrollments')
             .select('student_id, users(id, full_name, email)')
             .eq('subject_id', subjectId);
@@ -168,14 +168,14 @@ const getStudentPerformance = async (req, res) => {
         const studentIds = enrollments.map(e => e.student_id);
 
         // Attendance
-        const { data: attendance } = await supabase
+        const { data: attendance } = await supabaseAdmin
             .from('attendance')
             .select('student_id, status')
             .eq('subject_id', subjectId)
             .in('student_id', studentIds);
 
         // Assignments & submissions
-        const { data: assignments } = await supabase
+        const { data: assignments } = await supabaseAdmin
             .from('assignments')
             .select('id')
             .eq('subject_id', subjectId);
@@ -183,7 +183,7 @@ const getStudentPerformance = async (req, res) => {
 
         let submissions = [];
         if (assignmentIds.length > 0) {
-            const { data: subs } = await supabase
+            const { data: subs } = await supabaseAdmin
                 .from('submissions')
                 .select('student_id, marks, status')
                 .in('assignment_id', assignmentIds)
@@ -192,7 +192,7 @@ const getStudentPerformance = async (req, res) => {
         }
 
         // Quiz attempts
-        const { data: quizzes } = await supabase
+        const { data: quizzes } = await supabaseAdmin
             .from('quizzes')
             .select('id')
             .eq('subject_id', subjectId);
@@ -200,7 +200,7 @@ const getStudentPerformance = async (req, res) => {
 
         let quizAttempts = [];
         if (quizIds.length > 0) {
-            const { data: attempts } = await supabase
+            const { data: attempts } = await supabaseAdmin
                 .from('student_quiz_attempts')
                 .select('student_id, score, total, passed')
                 .in('quiz_id', quizIds)
