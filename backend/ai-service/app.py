@@ -1,108 +1,74 @@
 import os
 import json
+import logging
+import io
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from google import genai
 from PyPDF2 import PdfReader
 from dotenv import load_dotenv
-import io
 
-load_dotenv()
-
+# Flask setup
 app = Flask(__name__)
 CORS(app)
 
-api_key = os.getenv("AIzaSyAK4AqyJx4oB6ty3rBCW4OfyKv0cSNPLD0")
-if not api_key:
-    print("WARNING: GEMINI_API_KEY not set in .env")
+load_dotenv()
 
-client = genai.Client(api_key=api_key) if api_key else None
+# Logging
+logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
+logger = logging.getLogger("ai-quiz-generator")
 
+# API client
+API_KEY = os.getenv("GEMINI_API_KEY")
+if not API_KEY:
+    logger.warning("GEMINI_API_KEY not set")
+client = genai.Client(api_key=API_KEY) if API_KEY else None
 
 @app.route("/health", methods=["GET"])
 def health():
-    return jsonify({"status": "ok", "service": "ai-quiz-generator"})
-
+    return jsonify({"status": "ok"})
 
 @app.route("/generate-quiz", methods=["POST"])
 def generate_quiz():
-    """
-    Accepts either:
-      - A PDF file upload (multipart/form-data with key 'pdf')
-      - Raw text in JSON body ({"text": "...", "num_questions": 5})
-    Returns a JSON array of quiz questions.
-    """
     if not client:
         return jsonify({"error": "GEMINI_API_KEY not configured"}), 500
 
-    text = ""
-    num_questions = 5
+    text, num_questions = "", 5
+    try:
+        if "pdf" in request.files:
+            pdf = PdfReader(io.BytesIO(request.files["pdf"].read()))
+            text = "".join(page.extract_text() or "" for page in pdf.pages)
+            num_questions = int(request.form.get("num_questions", 5))
+        elif request.is_json:
+            body = request.get_json()
+            text = body.get("text", "")
+            num_questions = body.get("num_questions", 5)
+        else:
+            return jsonify({"error": "Provide PDF or JSON with 'text'"}), 400
 
-    # Handle PDF file upload
-    if "pdf" in request.files:
-        pdf_file = request.files["pdf"]
-        reader = PdfReader(io.BytesIO(pdf_file.read()))
-        text = "".join([page.extract_text() or "" for page in reader.pages])
-        num_questions = int(request.form.get("num_questions", 5))
-    # Handle JSON body with raw text
-    elif request.is_json:
-        body = request.get_json()
-        text = body.get("text", "")
-        num_questions = body.get("num_questions", 5)
-    else:
-        return jsonify({"error": "Send a PDF file or JSON with 'text' field"}), 400
+        if not text.strip():
+            return jsonify({"error": "No text found"}), 400
 
-    if not text.strip():
-        return jsonify({"error": "No text content found in the provided input"}), 400
+        text = text[:15000]  # truncate if too long
 
-    # Truncate very long texts to avoid token limits
-    max_chars = 15000
-    if len(text) > max_chars:
-        text = text[:max_chars]
-
-    prompt = f"""Based on this text, generate {num_questions} multiple-choice questions.
-Return ONLY a JSON array in this exact format, no extra text:
-[
-  {{
-    "question": "Question text here?",
-    "options": ["A) option1", "B) option2", "C) option3", "D) option4"],
-    "answer": "A) option1"
-  }}
-]
-
+        prompt = f"""Generate {num_questions} multiple-choice questions from this text. Return ONLY JSON array in format:
+[{{"question": "...", "options": ["A)...","B)...","C)...","D)..."], "answer": "A)..."}}]
 Text: {text}"""
 
-    try:
-        response = client.models.generate_content(
-            model="gemini-2.5-flash",
-            contents=prompt
-        )
-        raw = (
-            response.text.strip()
-            .removeprefix("```json")
-            .removeprefix("```")
-            .removesuffix("```")
-            .strip()
-        )
+        response = client.models.generate_content(model="gemini-2.5-flash", contents=prompt)
+        raw = response.text.strip().removeprefix("```json").removeprefix("```").removesuffix("```").strip()
         questions = json.loads(raw)
 
-        # Validate structure
-        if not isinstance(questions, list):
+        if not all(all(k in q for k in ("question","options","answer")) for q in questions):
             return jsonify({"error": "AI returned invalid format"}), 500
-
-        for q in questions:
-            if not all(k in q for k in ("question", "options", "answer")):
-                return jsonify({"error": "AI returned incomplete question format"}), 500
 
         return jsonify({"success": True, "questions": questions})
 
-    except json.JSONDecodeError:
-        return jsonify({"error": "Failed to parse AI response as JSON"}), 500
     except Exception as e:
+        logger.exception("AI generation failed")
         return jsonify({"error": f"AI generation failed: {str(e)}"}), 500
-
 
 if __name__ == "__main__":
     port = int(os.getenv("AI_SERVICE_PORT", 5001))
-    print(f"AI Quiz Service running on port {port}")
-    app.run(host="0.0.0.0", port=port, debug=True)
+    logger.info(f"AI Quiz Service running on port {port}")
+    app.run(host="0.0.0.0", port=port, debug=False)
